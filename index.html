@@ -10,15 +10,15 @@ html, body {
   display:flex;
   flex-direction:column;
   font-family: Arial, sans-serif;
-  background: #f0f2f5;
+  background:#f0f2f5;
 }
 #toolbar {
   display:flex;
   justify-content:center;
   padding:10px;
   background:#fff;
-  flex-shrink:0;
   border-bottom:1px solid #ccc;
+  flex-shrink:0;
 }
 button {
   background:#007bff;
@@ -41,10 +41,11 @@ button:hover { background:#0056b3; }
 }
 #workspace {
   position:relative;
-  width:90vmin;
-  height:90vmin;
+  width:calc(100vmin);
+  height:calc(100vmin);
   border:2px solid #000;
   background:#fff;
+  box-sizing:border-box;
 }
 .box {
   position:absolute;
@@ -95,7 +96,7 @@ button:hover { background:#0056b3; }
 </div>
 <div id="messageArea">
   <div id="msgLabel">Message:</div>
-  <textarea id="msgInput" placeholder="Type your message11..."></textarea>
+  <textarea id="msgInput" placeholder="Type your message5..."></textarea>
   <button id="sendMsg">Send Data</button>
 </div>
 <script>
@@ -110,10 +111,10 @@ function updateBox(b){
   let corners=[
     {x:0,y:0},{x:w,y:0},{x:0,y:h},{x:w,y:h}
   ]
-  let minX=Math.min(...corners.map(p=>p.x*cos-p.y*sin))
-  let maxX=Math.max(...corners.map(p=>p.x*cos-p.y*sin))
-  let minY=Math.min(...corners.map(p=>p.x*sin+p.y*cos))
-  let maxY=Math.max(...corners.map(p=>p.x*sin+p.y*cos))
+  let xs=corners.map(p=>p.x*cos-p.y*sin)
+  let ys=corners.map(p=>p.x*sin+p.y*cos)
+  let minX=Math.min(...xs), maxX=Math.max(...xs)
+  let minY=Math.min(...ys), maxY=Math.max(...ys)
   if(x+minX<0) x=-minX
   if(y+minY<0) y=-minY
   if(x+maxX>SPACE) x=SPACE-maxX
