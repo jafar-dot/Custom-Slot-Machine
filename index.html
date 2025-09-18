@@ -2,226 +2,140 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Slot Editor 1024</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slot Custom Shape</title>
 <style>
-html, body {
-  margin:0;
-  padding:0;
-  height:100%;
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  font-family: Arial, sans-serif;
-  background:#f0f2f5;
-}
-#toolbar {
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#fff;
-  border-bottom:1px solid #ccc;
-  flex-shrink:0;
-}
-button {
-  background:#007bff;
-  color:#fff;
-  border:none;
-  padding:10px 18px;
-  border-radius:6px;
-  font-size:15px;
-  cursor:pointer;
-  transition:0.3s;
-}
-button:hover { background:#0056b3; }
-#workspace-container {
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  position:relative;
-  min-height:0;
-  margin-bottom:10px;
-}
-#workspace {
-  position:relative;
-  width:90vmin;
-  height:90vmin;
-  border:2px solid #000;
-  background:#fff;
-  box-sizing:border-box;
-}
-.box {
-  position:absolute;
-  border:1px dashed #333;
-  background:rgba(255,0,0,0.2);
-  transform-origin:0 0;
-}
-.handle{
-  width:10px;height:10px;
-  background:#fff;
-  border:1px solid #000;
-  position:absolute;
-}
-.handle.rotate {
-  cursor:grab;
-  width:12px;height:12px;
-  border-radius:50%;
-  background:#0af;
-  top:-25px;left:50%;
-  transform:translateX(-50%);
-}
-#messageArea {
-  padding:10px;
-  background:#fff;
-  border-top:1px solid #ccc;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  flex-shrink:0;
-}
-#msgLabel { font-size:14px; font-weight:bold; }
-#msgInput {
-  resize:none;
-  padding:10px;
-  font-size:14px;
-  border:1px solid #ccc;
-  border-radius:6px;
-  min-height:60px;
-}
+body { margin:0; padding:0; display:flex; flex-direction:column; height:100vh; font-family:Arial,sans-serif; }
+#home { display:flex; justify-content:center; align-items:center; flex:1; }
+#canvasPage { display:none; flex-direction:column; align-items:center; flex:1; }
+#buttons { display:flex; justify-content:center; margin:10px 0; flex-shrink:0; }
+#canvas { flex:1; width:90%; max-width:1024px; aspect-ratio:1/1; background:#fff; border:1px solid #ccc; position:relative; overflow:hidden; }
+.reel { position:absolute; background:rgba(0,150,255,0.5); cursor:move; transform-origin:0 0; }
+.handle { width:12px; height:12px; background:#000; position:absolute; bottom:-6px; right:-6px; cursor:se-resize; }
 </style>
 </head>
 <body>
-<div id="toolbar">
-  <button id="addRect">Add Rect</button>
+<div id="home">
+  <button id="goCustom">Go to Custom Shape</button>
 </div>
-<div id="workspace-container">
-  <div id="workspace"></div>
-</div>
-<div id="messageArea">
-  <div id="msgLabel">Message:</div>
-  <textarea id="msgInput" placeholder="Type your message..."></textarea>
-  <button id="sendMsg">Send Data</button>
+<div id="canvasPage">
+  <div id="buttons">
+    <button id="addReel">Add Reel</button>
+    <button id="back">Back</button>
+  </div>
+  <div id="canvas"></div>
+  <div id="messageArea" style="width:90%; max-width:1024px; margin:10px 0; display:flex; flex-direction:column;">
+    <textarea id="msgInput" style="width:100%; height:60px; padding:5px;" placeholder="Type message..."></textarea>
+    <button id="send" style="margin-top:5px;">Send Data</button>
+  </div>
 </div>
 <script>
-const c=document.getElementById("workspace")
-const SPACE=1024
-function toScreen(v){return v*(c.clientWidth/SPACE)}
-function fromScreen(v){return v/(c.clientWidth/SPACE)}
-function updateBox(b){
-  let x=+b.dataset.x, y=+b.dataset.y, w=+b.dataset.w, h=+b.dataset.h, rot=+b.dataset.rot
-  let rad=rot*Math.PI/180
-  let cos=Math.cos(rad), sin=Math.sin(rad)
-  let corners=[
-    {x:0,y:0},{x:w,y:0},{x:0,y:h},{x:w,y:h}
-  ]
-  let xs=corners.map(p=>p.x*cos-p.y*sin)
-  let ys=corners.map(p=>p.x*sin+p.y*cos)
-  let minX=Math.min(...xs), maxX=Math.max(...xs)
-  let minY=Math.min(...ys), maxY=Math.max(...ys)
-  if(x+minX<0) x=-minX
-  if(y+minY<0) y=-minY
-  if(x+maxX>SPACE) x=SPACE-maxX
-  if(y+maxY>SPACE) y=SPACE-maxY
-  b.dataset.x=x;b.dataset.y=y
-  b.style.width=toScreen(w)+"px"
-  b.style.height=toScreen(h)+"px"
-  b.style.left=toScreen(x)+"px"
-  b.style.top=toScreen(y)+"px"
-  b.style.transform=`rotate(${rot}deg)`
+const home=document.getElementById('home')
+const canvasPage=document.getElementById('canvasPage')
+const canvas=document.getElementById('canvas')
+document.getElementById('goCustom').onclick=()=>{home.style.display='none'; canvasPage.style.display='flex'}
+document.getElementById('back').onclick=()=>{canvasPage.style.display='none'; home.style.display='flex'}
+
+document.getElementById('addReel').onclick=()=>{addReel()}
+function addReel(){
+  const reel=document.createElement('div')
+  reel.classList.add('reel')
+  reel.style.width='100px'
+  reel.style.height='200px'
+  reel.style.left='50%'
+  reel.style.top='50%'
+  reel.style.transform='translate(-50%,-50%) rotate(0deg)'
+  reel.dataset.angle=0
+  const handle=document.createElement('div')
+  handle.classList.add('handle')
+  reel.appendChild(handle)
+  canvas.appendChild(reel)
+  makeDraggable(reel)
+  makeRotatable(reel)
+  makeResizable(reel,handle)
+  reel.oncontextmenu=e=>{e.preventDefault(); reel.remove()}
 }
-function addBox(x=100,y=100,w=200,h=150){
-  let b=document.createElement("div")
-  b.className="box"
-  b.dataset.x=x; b.dataset.y=y; b.dataset.w=w; b.dataset.h=h; b.dataset.rot=0
-  updateBox(b)
-  addHandles(b)
-  c.appendChild(b)
-  b.oncontextmenu=e=>{e.preventDefault();b.remove()}
-}
-function addHandles(b){
-  const positions=["tl","tr","bl","br","top","bottom","left","right"]
-  positions.forEach(pos=>{
-    let h=document.createElement("div")
-    h.className="handle "+pos
-    if(pos==="tl"){h.style.left="-5px";h.style.top="-5px"}
-    if(pos==="tr"){h.style.right="-5px";h.style.top="-5px"}
-    if(pos==="bl"){h.style.left="-5px";h.style.bottom="-5px"}
-    if(pos==="br"){h.style.right="-5px";h.style.bottom="-5px"}
-    if(pos==="top"){h.style.top="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"}
-    if(pos==="bottom"){h.style.bottom="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"}
-    if(pos==="left"){h.style.left="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"}
-    if(pos==="right"){h.style.right="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"}
-    b.appendChild(h)
-    h.onmousedown=e=>resizeStart(e,b,pos)
+
+function makeDraggable(el){
+  let startX,startY,origX,origY
+  el.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('handle'))return
+    startX=e.clientX; startY=e.clientY
+    const rect=el.getBoundingClientRect()
+    const parent=canvas.getBoundingClientRect()
+    origX=rect.left-parent.left; origY=rect.top-parent.top
+    function moveHandler(ev){
+      let newX=origX+(ev.clientX-startX)
+      let newY=origY+(ev.clientY-startY)
+      newX=Math.max(0,Math.min(newX,canvas.clientWidth-el.offsetWidth))
+      newY=Math.max(0,Math.min(newY,canvas.clientHeight-el.offsetHeight))
+      el.style.left=newX+'px'
+      el.style.top=newY+'px'
+      el.style.transform=`rotate(${el.dataset.angle}deg)`
+    }
+    function upHandler(){document.removeEventListener('mousemove',moveHandler); document.removeEventListener('mouseup',upHandler)}
+    document.addEventListener('mousemove',moveHandler)
+    document.addEventListener('mouseup',upHandler)
   })
-  let rot=document.createElement("div")
-  rot.className="handle rotate"
-  b.appendChild(rot)
-  rot.onmousedown=e=>rotateStart(e,b)
-  b.onmousedown=e=>{
-    if(e.target!==b) return
-    let startX=e.clientX, startY=e.clientY
-    let x=+b.dataset.x, y=+b.dataset.y
-    document.onmousemove=ev=>{
-      let dx=fromScreen(ev.clientX-startX), dy=fromScreen(ev.clientY-startY)
-      b.dataset.x=Math.min(Math.max(0,x+dx),SPACE-+b.dataset.w)
-      b.dataset.y=Math.min(Math.max(0,y+dy),SPACE-+b.dataset.h)
-      updateBox(b)
+}
+
+function makeRotatable(el){
+  el.addEventListener('wheel',e=>{
+    e.preventDefault()
+    let angle=parseFloat(el.dataset.angle)||0
+    angle+=e.deltaY>0?5:-5
+    el.dataset.angle=angle
+    el.style.transform=`rotate(${angle}deg)`
+    const handle=el.querySelector('.handle')
+    handle.style.transform=`rotate(${-angle}deg)`
+    constrainRotation(el)
+  })
+}
+
+function makeResizable(el,handle){
+  let startX,startY,startW,startH
+  handle.addEventListener('mousedown',e=>{
+    e.stopPropagation()
+    startX=e.clientX; startY=e.clientY
+    startW=el.offsetWidth; startH=el.offsetHeight
+    function moveHandler(ev){
+      let newW=Math.max(20,startW+(ev.clientX-startX))
+      let newH=Math.max(20,startH+(ev.clientY-startY))
+      el.style.width=newW+'px'
+      el.style.height=newH+'px'
+      constrainRotation(el)
     }
-    document.onmouseup=()=>document.onmousemove=null
-  }
+    function upHandler(){document.removeEventListener('mousemove',moveHandler); document.removeEventListener('mouseup',upHandler)}
+    document.addEventListener('mousemove',moveHandler)
+    document.addEventListener('mouseup',upHandler)
+  })
 }
-function resizeStart(e,box,dir){
-  e.stopPropagation()
-  let startX=e.clientX, startY=e.clientY
-  let w=+box.dataset.w,h=+box.dataset.h,x=+box.dataset.x,y=+box.dataset.y
-  let rot=+box.dataset.rot*Math.PI/180
-  document.onmousemove=ev=>{
-    let dx=fromScreen(ev.clientX-startX), dy=fromScreen(ev.clientY-startY)
-    let localX=dx*Math.cos(-rot)-dy*Math.sin(-rot)
-    let localY=dx*Math.sin(-rot)+dy*Math.cos(-rot)
-    let newW=w,newH=h,newX=x,newY=y
-    if(dir==="tr"){newW=w+localX; newH=h-localY; newY=y+localY}
-    if(dir==="tl"){newW=w-localX; newX=x+localX; newH=h-localY; newY=y+localY}
-    if(dir==="br"){newW=w+localX; newH=h+localY}
-    if(dir==="bl"){newW=w-localX; newX=x+localX; newH=h+localY}
-    if(dir==="top"){newH=h-localY; newY=y+localY}
-    if(dir==="bottom"){newH=h+localY}
-    if(dir==="left"){newW=w-localX; newX=x+localX}
-    if(dir==="right"){newW=w+localX}
-    if(newW>=20 && newH>=20){
-      box.dataset.w=newW; box.dataset.h=newH; box.dataset.x=newX; box.dataset.y=newY
-      updateBox(box)
-    }
-  }
-  document.onmouseup=()=>document.onmousemove=null
+
+function constrainRotation(el){
+  const rect=el.getBoundingClientRect()
+  const parent=canvas.getBoundingClientRect()
+  let offsetX=rect.left-parent.left, offsetY=rect.top-parent.top
+  let w=rect.width, h=rect.height
+  if(offsetX<0) el.style.left='0px'
+  if(offsetY<0) el.style.top='0px'
+  if(offsetX+w>canvas.clientWidth) el.style.left=(canvas.clientWidth-w)+'px'
+  if(offsetY+h>canvas.clientHeight) el.style.top=(canvas.clientHeight-h)+'px'
 }
-function rotateStart(e,box){
-  e.stopPropagation()
-  let rect=c.getBoundingClientRect()
-  let cx=toScreen(+box.dataset.x + +box.dataset.w/2) + rect.left
-  let cy=toScreen(+box.dataset.y + +box.dataset.h/2) + rect.top
-  document.onmousemove=ev=>{
-    let angle=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI
-    box.dataset.rot=angle
-    updateBox(box)
-  }
-  document.onmouseup=()=>document.onmousemove=null
-}
-function collectData(){
-  return [...document.querySelectorAll(".box")].map(b=>({
-    x:+b.dataset.x,
-    y:+b.dataset.y,
-    w:+b.dataset.w,
-    h:+b.dataset.h,
-    rot:+b.dataset.rot
-  }))
-}
-document.getElementById("addRect").onclick=()=>addBox(100,100,200,150)
-document.getElementById("sendMsg").onclick=()=>{
-  let msg=document.getElementById("msgInput").value
-  console.log("Message:",msg)
-  console.log("Rects:",JSON.stringify(collectData(),null,2))
+
+document.getElementById('send').onclick=()=>{
+  const reels=document.querySelectorAll('.reel')
+  const data=Array.from(reels).map(r=>{
+    const rect=r.getBoundingClientRect()
+    const parent=canvas.getBoundingClientRect()
+    const angle=parseFloat(r.dataset.angle)||0
+    const x=(rect.left-parent.left+rect.width/2)/canvas.clientWidth*1024
+    const y=(rect.top-parent.top+rect.height/2)/canvas.clientHeight*1024
+    const w=rect.width/canvas.clientWidth*1024
+    const h=rect.height/canvas.clientHeight*1024
+    return {x,y,width:w,height:h,rotation:angle}
+  })
+  console.log("Message:", document.getElementById('msgInput').value)
+  console.log("Rects:", JSON.stringify(data))
 }
 </script>
 </body>
