@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Editor</title>
+<title>Editor 1024</title>
 <style>
-#c{width:90%;height:70vh;border:1px solid #000;position:relative;margin-top:10px;background:#f9f9f9}
-.box{position:absolute;border:1px dashed #333;transform-origin:center center;}
+#c{
+  width:1024px;
+  height:1024px;
+  border:1px solid #000;
+  position:relative;
+  margin-top:10px;
+  background:#f9f9f9;
+}
+.box{
+  position:absolute;
+  border:1px dashed #333;
+  transform-origin:center center;
+}
 .handle{width:10px;height:10px;background:#fff;border:1px solid #000;position:absolute}
 .handle.corner{cursor:nwse-resize}
 .handle.side-x{cursor:ew-resize}
@@ -18,20 +29,6 @@
 <div id="c"></div>
 <script>
 const c=document.getElementById("c")
-let current=null
-
-document.getElementById("add").onclick=()=>{
- let b=document.createElement("div")
- b.className="box"
- b.dataset.x=100
- b.dataset.y=100
- b.dataset.w=120
- b.dataset.h=160
- b.dataset.rot=0
- updateBox(b)
- addHandles(b)
- c.appendChild(b)
-}
 
 function updateBox(b){
  let x=+b.dataset.x, y=+b.dataset.y, w=+b.dataset.w, h=+b.dataset.h, rot=+b.dataset.rot
@@ -40,6 +37,19 @@ function updateBox(b){
  b.style.left=(x-w/2)+"px"
  b.style.top=(y-h/2)+"px"
  b.style.transform=`rotate(${rot}deg)`
+}
+
+document.getElementById("add").onclick=()=>{
+ let b=document.createElement("div")
+ b.className="box"
+ b.dataset.x=512
+ b.dataset.y=512
+ b.dataset.w=200
+ b.dataset.h=150
+ b.dataset.rot=0
+ updateBox(b)
+ addHandles(b)
+ c.appendChild(b)
 }
 
 function addHandles(b){
@@ -75,7 +85,6 @@ function addHandles(b){
  
  b.onmousedown=e=>{
    if(e.target!==b) return
-   current=b
    let startX=e.clientX, startY=e.clientY
    let x=+b.dataset.x, y=+b.dataset.y
    document.onmousemove=ev=>{
@@ -90,7 +99,6 @@ function addHandles(b){
 
 function resizeStart(e,box,dir){
  e.stopPropagation()
- current=box
  let startX=e.clientX, startY=e.clientY
  let w=+box.dataset.w, h=+box.dataset.h
  let x=+box.dataset.x, y=+box.dataset.y
@@ -98,7 +106,6 @@ function resizeStart(e,box,dir){
  document.onmousemove=ev=>{
    let dx=(ev.clientX-startX)
    let dy=(ev.clientY-startY)
-   // rotate mouse delta into local box space
    let localX=dx*Math.cos(-rot)-dy*Math.sin(-rot)
    let localY=dx*Math.sin(-rot)+dy*Math.cos(-rot)
    let newW=w, newH=h, newX=x, newY=y
