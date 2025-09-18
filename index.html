@@ -195,6 +195,7 @@
       });
     }
 
+    // still allow visual rotation
     document.addEventListener('wheel', e => {
       if (!selected) return;
       e.preventDefault();
@@ -240,13 +241,12 @@
 
       const rects = Array.from(reels).map(r => {
         const rect = r.getBoundingClientRect();
-        const angle = parseFloat(r.dataset.angle) || 0;
         return {
           x: (rect.left - parent.left + rect.width / 2) / canvas.clientWidth * 1024,
           y: (rect.top - parent.top + rect.height / 2) / canvas.clientHeight * 1024,
           width: rect.width / canvas.clientWidth * 1024,
           height: rect.height / canvas.clientHeight * 1024,
-          rotation: angle
+          rotation: 0   // always send 0
         };
       });
 
