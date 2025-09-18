@@ -46,6 +46,7 @@ function addReel(){
   makeDraggable(reel)
   makeResizable(reel,handle)
   reel.onclick=()=>{selected=reel}
+  reel.oncontextmenu=e=>{e.preventDefault(); reel.remove()}
 }
 
 function makeDraggable(el){
