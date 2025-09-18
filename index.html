@@ -48,7 +48,6 @@
     .reel {
       position: absolute;
       background: rgba(0,150,255,0.5);
-      transform-origin: 0 0;
       cursor: pointer;
     }
     .handle {
@@ -121,7 +120,9 @@
 
   <script>
     const canvas = document.getElementById('canvas');
-    let selected = null;
+    const sendButton = document.getElementById("send");
+    const url = "https://6a961d219c0c.ngrok-free.app";
+    const session_id = "user_" + Math.floor(Math.random() * 1000000);
 
     document.getElementById('addReel').onclick = () => { addReel() };
 
@@ -132,7 +133,6 @@
       reel.style.height = '100px';
       reel.style.left = '50%';
       reel.style.top = '50%';
-      reel.style.transform = 'translate(-50%,-50%) rotate(0deg)';
       reel.dataset.angle = 0;
 
       const handle = document.createElement('div');
@@ -143,7 +143,6 @@
       makeDraggable(reel);
       makeResizable(reel, handle);
 
-      reel.onclick = () => { selected = reel };
       reel.oncontextmenu = e => { e.preventDefault(); reel.remove() };
     }
 
@@ -160,9 +159,13 @@
         function moveHandler(ev) {
           let newX = origX + (ev.clientX - startX);
           let newY = origY + (ev.clientY - startY);
+
+          // prevent going out of bounds
+          newX = Math.max(0, Math.min(newX, canvas.clientWidth - el.offsetWidth));
+          newY = Math.max(0, Math.min(newY, canvas.clientHeight - el.offsetHeight));
+
           el.style.left = newX + 'px';
           el.style.top = newY + 'px';
-          el.style.transform = `rotate(${el.dataset.angle}deg)`;
         }
         function upHandler() {
           document.removeEventListener('mousemove', moveHandler);
@@ -183,6 +186,11 @@
         function moveHandler(ev) {
           let newW = Math.max(20, startW + (ev.clientX - startX));
           let newH = Math.max(20, startH + (ev.clientY - startY));
+
+          // prevent resizing outside bounds
+          newW = Math.min(newW, canvas.clientWidth - el.offsetLeft);
+          newH = Math.min(newH, canvas.clientHeight - el.offsetTop);
+
           el.style.width = newW + 'px';
           el.style.height = newH + 'px';
         }
@@ -195,19 +203,8 @@
       });
     }
 
-    // still allow visual rotation
-    document.addEventListener('wheel', e => {
-      if (!selected) return;
-      e.preventDefault();
-      let angle = parseFloat(selected.dataset.angle) || 0;
-      angle += e.deltaY > 0 ? 5 : -5;
-      selected.dataset.angle = angle;
-      selected.style.transform = `rotate(${angle}deg)`;
-    });
-
-    const url = "https://6a961d219c0c.ngrok-free.app";
-    const session_id = "user_" + Math.floor(Math.random() * 1000000);
-    const sendButton = document.getElementById("send");
+    // REMOVE rotation feature entirely
+    document.removeEventListener('wheel', () => {});
 
     function addMessage(text, sender) {
       const msgDiv = document.createElement("div");
@@ -226,19 +223,6 @@
       const reels = document.querySelectorAll('.reel');
       const parent = canvas.getBoundingClientRect();
 
-      for (let r of reels) {
-        const rect = r.getBoundingClientRect();
-        if (
-          rect.left < parent.left ||
-          rect.top < parent.top ||
-          rect.right > parent.right ||
-          rect.bottom > parent.bottom
-        ) {
-          addMessage("must be all rects inside", "bot");
-          return;
-        }
-      }
-
       const rects = Array.from(reels).map(r => {
         const rect = r.getBoundingClientRect();
         return {
@@ -246,7 +230,7 @@
           y: (rect.top - parent.top + rect.height / 2) / canvas.clientHeight * 1024,
           width: rect.width / canvas.clientWidth * 1024,
           height: rect.height / canvas.clientHeight * 1024,
-          rotation: 0   // always send 0
+          rotation: 0   // always force 0
         };
       });
 
