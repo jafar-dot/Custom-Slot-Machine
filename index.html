@@ -3,29 +3,48 @@
 <head>
 <title>x</title>
 <style>
-#c{width:90%;height:70%;border:1px solid #000;position:relative}
+#c{width:90%;height:70%;border:1px solid #000;position:relative;margin-top:10px}
 .r{position:absolute;width:100px;height:200px;background:red;resize:both;overflow:auto;cursor:move}
 </style>
 </head>
 <body>
 <button id="a">add</button>
 <button id="s">send</button>
+<div>
+ width:<input id="w" type="number">
+ height:<input id="h" type="number">
+ angle:<input id="ang" type="number">
+ <button id="apply">apply</button>
+</div>
 <div id="c"></div>
 <script>
 const c=document.getElementById("c")
+let current=null
+
 document.getElementById("a").onclick=()=>{
  let d=document.createElement("div")
  d.className="r"
  d.style.left="50px"
  d.style.top="50px"
  d.style.transform="rotate(0deg)"
+ d.style.width="100px"
+ d.style.height="200px"
  c.appendChild(d)
  drag(d)
  rot(d)
+ d.onclick=()=>{
+   current=d
+   document.getElementById("w").value=parseInt(d.style.width)
+   document.getElementById("h").value=parseInt(d.style.height)
+   let rot=d.style.transform.match(/rotate\(([-\d.]+)deg\)/)
+   document.getElementById("ang").value=rot?parseFloat(rot[1]):0
+ }
 }
+
 function drag(e){
  let ox,oy
  e.onmousedown=m=>{
+  if(m.target!==e) return
   ox=m.clientX-e.offsetLeft
   oy=m.clientY-e.offsetTop
   function mm(m){e.style.left=(m.clientX-ox)+"px";e.style.top=(m.clientY-oy)+"px"}
@@ -34,6 +53,7 @@ function drag(e){
   document.addEventListener("mouseup",mu)
  }
 }
+
 function rot(e){
  e.onwheel=w=>{
   w.preventDefault()
@@ -41,8 +61,18 @@ function rot(e){
   let ang=cur?parseFloat(cur[1]):0
   ang+=w.deltaY>0?5:-5
   e.style.transform="rotate("+ang+"deg)"
+  if(current===e) document.getElementById("ang").value=ang
  }
 }
+
+document.getElementById("apply").onclick=()=>{
+ if(!current) return
+ current.style.width=document.getElementById("w").value+"px"
+ current.style.height=document.getElementById("h").value+"px"
+ let ang=document.getElementById("ang").value
+ current.style.transform="rotate("+ang+"deg)"
+}
+
 document.getElementById("s").onclick=()=>{
  let d=[...document.querySelectorAll(".r")].map(r=>{
   let b=r.getBoundingClientRect()
