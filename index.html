@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Slot Editor</title>
+<title>Slot Editor 1024</title>
 <style>
 html, body {
   margin:0;
@@ -36,6 +36,7 @@ button:hover { background:#0056b3; }
   justify-content:center;
   align-items:center;
   position:relative;
+  min-height:0;
 }
 #workspace {
   position:relative;
@@ -101,11 +102,26 @@ const SPACE=1024
 function toScreen(v){return v*(c.clientWidth/SPACE)}
 function fromScreen(v){return v/(c.clientWidth/SPACE)}
 function updateBox(b){
-  b.style.width=toScreen(+b.dataset.w)+"px"
-  b.style.height=toScreen(+b.dataset.h)+"px"
-  b.style.left=toScreen(+b.dataset.x)+"px"
-  b.style.top=toScreen(+b.dataset.y)+"px"
-  b.style.transform=`rotate(${+b.dataset.rot}deg)`
+  let x=+b.dataset.x, y=+b.dataset.y, w=+b.dataset.w, h=+b.dataset.h, rot=+b.dataset.rot
+  let rad=rot*Math.PI/180
+  let cos=Math.cos(rad), sin=Math.sin(rad)
+  let corners=[
+    {x:0,y:0},{x:w,y:0},{x:0,y:h},{x:w,y:h}
+  ]
+  let minX=Math.min(...corners.map(p=>p.x*cos-p.y*sin))
+  let maxX=Math.max(...corners.map(p=>p.x*cos-p.y*sin))
+  let minY=Math.min(...corners.map(p=>p.x*sin+p.y*cos))
+  let maxY=Math.max(...corners.map(p=>p.x*sin+p.y*cos))
+  if(x+minX<0) x=-minX
+  if(y+minY<0) y=-minY
+  if(x+maxX>SPACE) x=SPACE-maxX
+  if(y+maxY>SPACE) y=SPACE-maxY
+  b.dataset.x=x;b.dataset.y=y
+  b.style.width=toScreen(w)+"px"
+  b.style.height=toScreen(h)+"px"
+  b.style.left=toScreen(x)+"px"
+  b.style.top=toScreen(y)+"px"
+  b.style.transform=`rotate(${rot}deg)`
 }
 function addBox(x=100,y=100,w=200,h=150){
   let b=document.createElement("div")
@@ -114,6 +130,7 @@ function addBox(x=100,y=100,w=200,h=150){
   updateBox(b)
   addHandles(b)
   c.appendChild(b)
+  b.oncontextmenu=e=>{e.preventDefault();b.remove()}
 }
 function addHandles(b){
   const positions=["tl","tr","bl","br","top","bottom","left","right"]
@@ -141,9 +158,8 @@ function addHandles(b){
     let x=+b.dataset.x, y=+b.dataset.y
     document.onmousemove=ev=>{
       let dx=fromScreen(ev.clientX-startX), dy=fromScreen(ev.clientY-startY)
-      let newX=Math.min(Math.max(0,x+dx),SPACE-+b.dataset.w)
-      let newY=Math.min(Math.max(0,y+dy),SPACE-+b.dataset.h)
-      b.dataset.x=newX; b.dataset.y=newY
+      b.dataset.x=Math.min(Math.max(0,x+dx),SPACE-+b.dataset.w)
+      b.dataset.y=Math.min(Math.max(0,y+dy),SPACE-+b.dataset.h)
       updateBox(b)
     }
     document.onmouseup=()=>document.onmousemove=null
@@ -152,15 +168,13 @@ function addHandles(b){
 function resizeStart(e,box,dir){
   e.stopPropagation()
   let startX=e.clientX, startY=e.clientY
-  let w=+box.dataset.w, h=+box.dataset.h
-  let x=+box.dataset.x, y=+box.dataset.y
+  let w=+box.dataset.w,h=+box.dataset.h,x=+box.dataset.x,y=+box.dataset.y
   let rot=+box.dataset.rot*Math.PI/180
   document.onmousemove=ev=>{
-    let dx=fromScreen(ev.clientX-startX)
-    let dy=fromScreen(ev.clientY-startY)
+    let dx=fromScreen(ev.clientX-startX), dy=fromScreen(ev.clientY-startY)
     let localX=dx*Math.cos(-rot)-dy*Math.sin(-rot)
     let localY=dx*Math.sin(-rot)+dy*Math.cos(-rot)
-    let newW=w, newH=h, newX=x, newY=y
+    let newW=w,newH=h,newX=x,newY=y
     if(dir==="tr"){newW=w+localX; newH=h-localY; newY=y+localY}
     if(dir==="tl"){newW=w-localX; newX=x+localX; newH=h-localY; newY=y+localY}
     if(dir==="br"){newW=w+localX; newH=h+localY}
@@ -169,7 +183,7 @@ function resizeStart(e,box,dir){
     if(dir==="bottom"){newH=h+localY}
     if(dir==="left"){newW=w-localX; newX=x+localX}
     if(dir==="right"){newW=w+localX}
-    if(newW>=20 && newH>=20 && newX>=0 && newY>=0 && newX+newW<=SPACE && newY+newH<=SPACE){
+    if(newW>=20 && newH>=20){
       box.dataset.w=newW; box.dataset.h=newH; box.dataset.x=newX; box.dataset.y=newY
       updateBox(box)
     }
