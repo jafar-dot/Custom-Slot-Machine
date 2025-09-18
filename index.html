@@ -130,13 +130,29 @@ function sendMessage(){
   const input=document.getElementById("msgInput");
   const message=input.value.trim();
   if(!message||sendButton.disabled) return;
+
+  const reels = document.querySelectorAll('.reel');
+  const rects = Array.from(reels).map(r=>{
+    const rect = r.getBoundingClientRect();
+    const parent = canvas.getBoundingClientRect();
+    const angle = parseFloat(r.dataset.angle)||0;
+    return {
+      x: (rect.left-parent.left+rect.width/2)/canvas.clientWidth*1024,
+      y: (rect.top-parent.top+rect.height/2)/canvas.clientHeight*1024,
+      width: rect.width/canvas.clientWidth*1024,
+      height: rect.height/canvas.clientHeight*1024,
+      rotation: angle
+    };
+  });
+
   addMessage(message,"user");
   input.value="";
   document.getElementById("waitMessage").style.display="block";
+
   fetch(`${url}/receive_message`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:message,session_id:session_id})
+    body: JSON.stringify({message:message, session_id: session_id, rects: rects})
   }).then(res=>res.json()).then(data=>{
     if(data.status==="True"){ addMessage(data.reply,"bot") }
     else{ addMessage("Error: "+data.reply,"bot") }
