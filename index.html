@@ -1,84 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>x</title>
+<title>Editor</title>
 <style>
-#c{width:90%;height:70%;border:1px solid #000;position:relative;margin-top:10px}
-.r{position:absolute;width:100px;height:200px;background:red;resize:both;overflow:auto;cursor:move}
+#c{width:90%;height:70vh;border:1px solid #000;position:relative;margin-top:10px;background:#f9f9f9}
+.box{position:absolute;width:120px;height:160px;top:50px;left:50px;transform:rotate(0deg);border:1px dashed #333}
+.handle{width:10px;height:10px;background:#fff;border:1px solid #000;position:absolute}
+.handle.corner{cursor:nwse-resize}
+.handle.side-x{cursor:ew-resize}
+.handle.side-y{cursor:ns-resize}
+.handle.rotate{cursor:grab;width:12px;height:12px;border-radius:50%;background:#0af;top:-25px;left:50%;transform:translateX(-50%)}
 </style>
 </head>
 <body>
-<button id="a">add</button>
-<button id="s">send</button>
-<div>
- width:<input id="w" type="number">
- height:<input id="h" type="number">
- angle:<input id="ang" type="number">
- <button id="apply">apply</button>
-</div>
+<button id="add">Add Rect</button>
+<button id="send">Send Data</button>
 <div id="c"></div>
 <script>
 const c=document.getElementById("c")
-let current=null
+let current=null, startX, startY, startW, startH, startAngle, center
 
-document.getElementById("a").onclick=()=>{
- let d=document.createElement("div")
- d.className="r"
- d.style.left="50px"
- d.style.top="50px"
- d.style.transform="rotate(0deg)"
- d.style.width="100px"
- d.style.height="200px"
- c.appendChild(d)
- drag(d)
- rot(d)
- d.onclick=()=>{
-   current=d
-   document.getElementById("w").value=parseInt(d.style.width)
-   document.getElementById("h").value=parseInt(d.style.height)
-   let rot=d.style.transform.match(/rotate\(([-\d.]+)deg\)/)
-   document.getElementById("ang").value=rot?parseFloat(rot[1]):0
+document.getElementById("add").onclick=()=>{
+ let b=document.createElement("div")
+ b.className="box"
+ addHandles(b)
+ c.appendChild(b)
+}
+
+function addHandles(b){
+ let corners=["tl","tr","bl","br"]
+ corners.forEach(pos=>{
+   let h=document.createElement("div")
+   h.className="handle corner "+pos
+   if(pos==="tl"){h.style.left="-5px";h.style.top="-5px"}
+   if(pos==="tr"){h.style.right="-5px";h.style.top="-5px"}
+   if(pos==="bl"){h.style.left="-5px";h.style.bottom="-5px"}
+   if(pos==="br"){h.style.right="-5px";h.style.bottom="-5px"}
+   b.appendChild(h)
+   h.onmousedown=e=>resizeStart(e,b,pos)
+ })
+ ;["top","bottom"].forEach(pos=>{
+   let h=document.createElement("div")
+   h.className="handle side-y "+pos
+   h.style[pos]="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"
+   b.appendChild(h)
+   h.onmousedown=e=>resizeStart(e,b,pos)
+ })
+ ;["left","right"].forEach(pos=>{
+   let h=document.createElement("div")
+   h.className="handle side-x "+pos
+   h.style[pos]="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"
+   b.appendChild(h)
+   h.onmousedown=e=>resizeStart(e,b,pos)
+ })
+ let rot=document.createElement("div")
+ rot.className="handle rotate"
+ b.appendChild(rot)
+ rot.onmousedown=e=>rotateStart(e,b)
+ 
+ b.onmousedown=e=>{
+   if(e.target!==b) return
+   current=b
+   startX=e.clientX- b.offsetLeft
+   startY=e.clientY- b.offsetTop
+   document.onmousemove=ev=>{
+     b.style.left=(ev.clientX-startX)+"px"
+     b.style.top=(ev.clientY-startY)+"px"
+   }
+   document.onmouseup=()=>{document.onmousemove=null}
  }
 }
 
-function drag(e){
- let ox,oy
- e.onmousedown=m=>{
-  if(m.target!==e) return
-  ox=m.clientX-e.offsetLeft
-  oy=m.clientY-e.offsetTop
-  function mm(m){e.style.left=(m.clientX-ox)+"px";e.style.top=(m.clientY-oy)+"px"}
-  function mu(){document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu)}
-  document.addEventListener("mousemove",mm)
-  document.addEventListener("mouseup",mu)
+function resizeStart(e,box,dir){
+ e.stopPropagation()
+ current=box
+ startX=e.clientX; startY=e.clientY
+ let rect=box.getBoundingClientRect()
+ startW=rect.width; startH=rect.height
+ document.onmousemove=ev=>{
+   let dx=ev.clientX-startX, dy=ev.clientY-startY
+   if(dir==="tr"){box.style.width=(startW+dx)+"px";box.style.height=(startH-dy)+"px";box.style.top=(box.offsetTop+dy)+"px"}
+   if(dir==="tl"){box.style.width=(startW-dx)+"px";box.style.height=(startH-dy)+"px";box.style.left=(box.offsetLeft+dx)+"px";box.style.top=(box.offsetTop+dy)+"px"}
+   if(dir==="br"){box.style.width=(startW+dx)+"px";box.style.height=(startH+dy)+"px"}
+   if(dir==="bl"){box.style.width=(startW-dx)+"px";box.style.height=(startH+dy)+"px";box.style.left=(box.offsetLeft+dx)+"px"}
+   if(dir==="top"){box.style.height=(startH-dy)+"px";box.style.top=(box.offsetTop+dy)+"px"}
+   if(dir==="bottom"){box.style.height=(startH+dy)+"px"}
+   if(dir==="left"){box.style.width=(startW-dx)+"px";box.style.left=(box.offsetLeft+dx)+"px"}
+   if(dir==="right"){box.style.width=(startW+dx)+"px"}
  }
+ document.onmouseup=()=>{document.onmousemove=null}
 }
 
-function rot(e){
- e.onwheel=w=>{
-  w.preventDefault()
-  let cur=e.style.transform.match(/rotate\(([-\d.]+)deg\)/)
-  let ang=cur?parseFloat(cur[1]):0
-  ang+=w.deltaY>0?5:-5
-  e.style.transform="rotate("+ang+"deg)"
-  if(current===e) document.getElementById("ang").value=ang
+function rotateStart(e,box){
+ e.stopPropagation()
+ current=box
+ let rect=box.getBoundingClientRect()
+ center={x:rect.left+rect.width/2,y:rect.top+rect.height/2}
+ startAngle=getRotation(box)
+ document.onmousemove=ev=>{
+   let dx=ev.clientX-center.x, dy=ev.clientY-center.y
+   let angle=Math.atan2(dy,dx)*180/Math.PI
+   box.style.transform="rotate("+(angle)+"deg)"
  }
+ document.onmouseup=()=>{document.onmousemove=null}
 }
 
-document.getElementById("apply").onclick=()=>{
- if(!current) return
- current.style.width=document.getElementById("w").value+"px"
- current.style.height=document.getElementById("h").value+"px"
- let ang=document.getElementById("ang").value
- current.style.transform="rotate("+ang+"deg)"
+function getRotation(el){
+ let st=window.getComputedStyle(el).transform
+ if(st==="none") return 0
+ let m=new WebKitCSSMatrix(st)
+ return Math.round(Math.atan2(m.b,m.a)*180/Math.PI)
 }
 
-document.getElementById("s").onclick=()=>{
- let d=[...document.querySelectorAll(".r")].map(r=>{
-  let b=r.getBoundingClientRect()
-  let p=c.getBoundingClientRect()
-  let rot=r.style.transform.match(/rotate\(([-\d.]+)deg\)/)
-  return {x:b.left-p.left,y:b.top-p.top,w:b.width,h:b.height,r:rot?parseFloat(rot[1]):0}
+document.getElementById("send").onclick=()=>{
+ let d=[...document.querySelectorAll(".box")].map(b=>{
+  let r=b.getBoundingClientRect(), p=c.getBoundingClientRect()
+  return {x:r.left-p.left,y:r.top-p.top,w:r.width,h:r.height,rot:getRotation(b)}
  })
  console.log(JSON.stringify(d))
 }
