@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Editor 1024</title>
+<title>Editor 1024 Space</title>
 <style>
-#c{
-  width:1024px;
-  height:1024px;
-  border:1px solid #000;
-  position:relative;
-  margin-top:10px;
-  background:#f9f9f9;
+body {
+  margin:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  background:#eee;
 }
-.box{
+#outer {
+  position:relative;
+  width:90vmin;  /* keep square in viewport */
+  height:90vmin;
+  border:2px solid #000;
+  background:#fafafa;
+}
+#c {
+  position:absolute;
+  inset:0;
+}
+.box {
   position:absolute;
   border:1px dashed #333;
-  transform-origin:center center;
+  background:rgba(255,0,0,0.2);
+  transform-origin:0 0; /* anchor top-left */
 }
 .handle{width:10px;height:10px;background:#fff;border:1px solid #000;position:absolute}
 .handle.corner{cursor:nwse-resize}
@@ -24,134 +36,149 @@
 </style>
 </head>
 <body>
-<button id="add">Add Rect</button>
-<button id="send">Send Data</button>
-<div id="c"></div>
+<div id="outer">
+  <div id="c"></div>
+</div>
 <script>
 const c=document.getElementById("c")
+const SPACE=1024
+
+// convert logical (1024x1024) -> screen pixels
+function toScreen(v){return v * (c.clientWidth/SPACE)}
+function fromScreen(v){return v / (c.clientWidth/SPACE)}
 
 function updateBox(b){
- let x=+b.dataset.x, y=+b.dataset.y, w=+b.dataset.w, h=+b.dataset.h, rot=+b.dataset.rot
- b.style.width=w+"px"
- b.style.height=h+"px"
- b.style.left=(x-w/2)+"px"
- b.style.top=(y-h/2)+"px"
- b.style.transform=`rotate(${rot}deg)`
+  let x=+b.dataset.x, y=+b.dataset.y, w=+b.dataset.w, h=+b.dataset.h, rot=+b.dataset.rot
+  b.style.width=toScreen(w)+"px"
+  b.style.height=toScreen(h)+"px"
+  b.style.left=toScreen(x)+"px"
+  b.style.top=toScreen(y)+"px"
+  b.style.transform=`rotate(${rot}deg)`
 }
 
-document.getElementById("add").onclick=()=>{
- let b=document.createElement("div")
- b.className="box"
- b.dataset.x=512
- b.dataset.y=512
- b.dataset.w=200
- b.dataset.h=150
- b.dataset.rot=0
- updateBox(b)
- addHandles(b)
- c.appendChild(b)
+function addBox(x=100,y=100,w=200,h=150){
+  let b=document.createElement("div")
+  b.className="box"
+  b.dataset.x=x
+  b.dataset.y=y
+  b.dataset.w=w
+  b.dataset.h=h
+  b.dataset.rot=0
+  updateBox(b)
+  addHandles(b)
+  c.appendChild(b)
 }
+
+// Add 1 default box
+addBox(100,100,200,150)
 
 function addHandles(b){
- let corners=["tl","tr","bl","br"]
- corners.forEach(pos=>{
-   let h=document.createElement("div")
-   h.className="handle corner "+pos
-   if(pos==="tl"){h.style.left="-5px";h.style.top="-5px"}
-   if(pos==="tr"){h.style.right="-5px";h.style.top="-5px"}
-   if(pos==="bl"){h.style.left="-5px";h.style.bottom="-5px"}
-   if(pos==="br"){h.style.right="-5px";h.style.bottom="-5px"}
-   b.appendChild(h)
-   h.onmousedown=e=>resizeStart(e,b,pos)
- })
- ;["top","bottom"].forEach(pos=>{
-   let h=document.createElement("div")
-   h.className="handle side-y "+pos
-   h.style[pos]="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"
-   b.appendChild(h)
-   h.onmousedown=e=>resizeStart(e,b,pos)
- })
- ;["left","right"].forEach(pos=>{
-   let h=document.createElement("div")
-   h.className="handle side-x "+pos
-   h.style[pos]="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"
-   b.appendChild(h)
-   h.onmousedown=e=>resizeStart(e,b,pos)
- })
- let rot=document.createElement("div")
- rot.className="handle rotate"
- b.appendChild(rot)
- rot.onmousedown=e=>rotateStart(e,b)
- 
- b.onmousedown=e=>{
-   if(e.target!==b) return
-   let startX=e.clientX, startY=e.clientY
-   let x=+b.dataset.x, y=+b.dataset.y
-   document.onmousemove=ev=>{
-     let dx=ev.clientX-startX, dy=ev.clientY-startY
-     b.dataset.x=x+dx
-     b.dataset.y=y+dy
-     updateBox(b)
-   }
-   document.onmouseup=()=>{document.onmousemove=null}
- }
+  let corners=["tl","tr","bl","br"]
+  corners.forEach(pos=>{
+    let h=document.createElement("div")
+    h.className="handle corner "+pos
+    if(pos==="tl"){h.style.left="-5px";h.style.top="-5px"}
+    if(pos==="tr"){h.style.right="-5px";h.style.top="-5px"}
+    if(pos==="bl"){h.style.left="-5px";h.style.bottom="-5px"}
+    if(pos==="br"){h.style.right="-5px";h.style.bottom="-5px"}
+    b.appendChild(h)
+    h.onmousedown=e=>resizeStart(e,b,pos)
+  })
+  ;["top","bottom"].forEach(pos=>{
+    let h=document.createElement("div")
+    h.className="handle side-y "+pos
+    h.style[pos]="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"
+    b.appendChild(h)
+    h.onmousedown=e=>resizeStart(e,b,pos)
+  })
+  ;["left","right"].forEach(pos=>{
+    let h=document.createElement("div")
+    h.className="handle side-x "+pos
+    h.style[pos]="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"
+    b.appendChild(h)
+    h.onmousedown=e=>resizeStart(e,b,pos)
+  })
+  let rot=document.createElement("div")
+  rot.className="handle rotate"
+  b.appendChild(rot)
+  rot.onmousedown=e=>rotateStart(e,b)
+  
+  // Drag whole box
+  b.onmousedown=e=>{
+    if(e.target!==b) return
+    let startX=e.clientX, startY=e.clientY
+    let x=+b.dataset.x, y=+b.dataset.y
+    document.onmousemove=ev=>{
+      let dx=fromScreen(ev.clientX-startX), dy=fromScreen(ev.clientY-startY)
+      let newX=Math.min(Math.max(0,x+dx),SPACE-+b.dataset.w)
+      let newY=Math.min(Math.max(0,y+dy),SPACE-+b.dataset.h)
+      b.dataset.x=newX
+      b.dataset.y=newY
+      updateBox(b)
+    }
+    document.onmouseup=()=>document.onmousemove=null
+  }
 }
 
 function resizeStart(e,box,dir){
- e.stopPropagation()
- let startX=e.clientX, startY=e.clientY
- let w=+box.dataset.w, h=+box.dataset.h
- let x=+box.dataset.x, y=+box.dataset.y
- let rot=+box.dataset.rot*Math.PI/180
- document.onmousemove=ev=>{
-   let dx=(ev.clientX-startX)
-   let dy=(ev.clientY-startY)
-   let localX=dx*Math.cos(-rot)-dy*Math.sin(-rot)
-   let localY=dx*Math.sin(-rot)+dy*Math.cos(-rot)
-   let newW=w, newH=h, newX=x, newY=y
-   if(dir==="tr"){newW=w+localX; newH=h-localY; newY=y+localY/2}
-   if(dir==="tl"){newW=w-localX; newX=x+localX/2; newH=h-localY; newY=y+localY/2}
-   if(dir==="br"){newW=w+localX; newH=h+localY; newY=y+localY/2}
-   if(dir==="bl"){newW=w-localX; newX=x+localX/2; newH=h+localY; newY=y+localY/2}
-   if(dir==="top"){newH=h-localY; newY=y+localY/2}
-   if(dir==="bottom"){newH=h+localY; newY=y+localY/2}
-   if(dir==="left"){newW=w-localX; newX=x+localX/2}
-   if(dir==="right"){newW=w+localX; newX=x+localX/2}
-   if(newW>20 && newH>20){
-     box.dataset.w=newW
-     box.dataset.h=newH
-     box.dataset.x=newX
-     box.dataset.y=newY
-     updateBox(box)
-   }
- }
- document.onmouseup=()=>{document.onmousemove=null}
+  e.stopPropagation()
+  let startX=e.clientX, startY=e.clientY
+  let w=+box.dataset.w, h=+box.dataset.h
+  let x=+box.dataset.x, y=+box.dataset.y
+  let rot=+box.dataset.rot*Math.PI/180
+  document.onmousemove=ev=>{
+    let dx=fromScreen(ev.clientX-startX)
+    let dy=fromScreen(ev.clientY-startY)
+    let localX=dx*Math.cos(-rot)-dy*Math.sin(-rot)
+    let localY=dx*Math.sin(-rot)+dy*Math.cos(-rot)
+    let newW=w, newH=h, newX=x, newY=y
+    if(dir==="tr"){newW=w+localX; newH=h-localY; newY=y+localY}
+    if(dir==="tl"){newW=w-localX; newX=x+localX; newH=h-localY; newY=y+localY}
+    if(dir==="br"){newW=w+localX; newH=h+localY}
+    if(dir==="bl"){newW=w-localX; newX=x+localX; newH=h+localY}
+    if(dir==="top"){newH=h-localY; newY=y+localY}
+    if(dir==="bottom"){newH=h+localY}
+    if(dir==="left"){newW=w-localX; newX=x+localX}
+    if(dir==="right"){newW=w+localX}
+    // Clamp inside space
+    if(newW>=20 && newH>=20 && newX>=0 && newY>=0 && newX+newW<=SPACE && newY+newH<=SPACE){
+      box.dataset.w=newW
+      box.dataset.h=newH
+      box.dataset.x=newX
+      box.dataset.y=newY
+      updateBox(box)
+    }
+  }
+  document.onmouseup=()=>document.onmousemove=null
 }
 
 function rotateStart(e,box){
- e.stopPropagation()
- let rect=box.getBoundingClientRect()
- let cx=rect.left+rect.width/2, cy=rect.top+rect.height/2
- document.onmousemove=ev=>{
-   let angle=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI
-   box.dataset.rot=angle
-   updateBox(box)
- }
- document.onmouseup=()=>{document.onmousemove=null}
+  e.stopPropagation()
+  let rect=c.getBoundingClientRect()
+  let scale=SPACE/c.clientWidth
+  let cx=toScreen(+box.dataset.x + +box.dataset.w/2) + rect.left
+  let cy=toScreen(+box.dataset.y + +box.dataset.h/2) + rect.top
+  document.onmousemove=ev=>{
+    let angle=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI
+    box.dataset.rot=angle
+    updateBox(box)
+  }
+  document.onmouseup=()=>document.onmousemove=null
 }
 
-document.getElementById("send").onclick=()=>{
- let d=[...document.querySelectorAll(".box")].map(b=>{
-   return {
-     x:+b.dataset.x,
-     y:+b.dataset.y,
-     w:+b.dataset.w,
-     h:+b.dataset.h,
-     rot:+b.dataset.rot
-   }
- })
- console.log(JSON.stringify(d))
-}
+// Debug: print rects
+window.addEventListener("keydown",e=>{
+  if(e.key==="s"){
+    let data=[...document.querySelectorAll(".box")].map(b=>({
+      x:+b.dataset.x,
+      y:+b.dataset.y,
+      w:+b.dataset.w,
+      h:+b.dataset.h,
+      rot:+b.dataset.rot
+    }))
+    console.log(JSON.stringify(data,null,2))
+  }
+})
 </script>
 </body>
 </html>
