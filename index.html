@@ -6,7 +6,9 @@
 <style>
 html, body {
   margin:0;
+  padding:0;
   height:100%;
+  width:100%;
   display:flex;
   flex-direction:column;
   font-family: Arial, sans-serif;
@@ -28,7 +30,7 @@ button {
   border-radius:6px;
   font-size:15px;
   cursor:pointer;
-  transition:background 0.3s;
+  transition:0.3s;
 }
 button:hover { background:#0056b3; }
 #workspace-container {
@@ -38,11 +40,12 @@ button:hover { background:#0056b3; }
   align-items:center;
   position:relative;
   min-height:0;
+  margin-bottom:10px;
 }
 #workspace {
   position:relative;
-  width:calc(100vmin);
-  height:calc(100vmin);
+  width:90vmin;
+  height:90vmin;
   border:2px solid #000;
   background:#fff;
   box-sizing:border-box;
@@ -96,7 +99,7 @@ button:hover { background:#0056b3; }
 </div>
 <div id="messageArea">
   <div id="msgLabel">Message:</div>
-  <textarea id="msgInput" placeholder="Type your message5..."></textarea>
+  <textarea id="msgInput" placeholder="Type your message..."></textarea>
   <button id="sendMsg">Send Data</button>
 </div>
 <script>
