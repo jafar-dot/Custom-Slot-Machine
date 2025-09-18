@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>x</title>
+<style>
+#c{width:90%;height:70%;border:1px solid #000;position:relative}
+.r{position:absolute;width:100px;height:200px;background:red;resize:both;overflow:auto;cursor:move}
+</style>
+</head>
+<body>
+<button id="a">add</button>
+<button id="s">send</button>
+<div id="c"></div>
+<script>
+const c=document.getElementById("c")
+document.getElementById("a").onclick=()=>{
+ let d=document.createElement("div")
+ d.className="r"
+ d.style.left="50px"
+ d.style.top="50px"
+ d.style.transform="rotate(0deg)"
+ c.appendChild(d)
+ drag(d)
+ rot(d)
+}
+function drag(e){
+ let ox,oy
+ e.onmousedown=m=>{
+  ox=m.clientX-e.offsetLeft
+  oy=m.clientY-e.offsetTop
+  function mm(m){e.style.left=(m.clientX-ox)+"px";e.style.top=(m.clientY-oy)+"px"}
+  function mu(){document.removeEventListener("mousemove",mm);document.removeEventListener("mouseup",mu)}
+  document.addEventListener("mousemove",mm)
+  document.addEventListener("mouseup",mu)
+ }
+}
+function rot(e){
+ e.onwheel=w=>{
+  w.preventDefault()
+  let cur=e.style.transform.match(/rotate\(([-\d.]+)deg\)/)
+  let ang=cur?parseFloat(cur[1]):0
+  ang+=w.deltaY>0?5:-5
+  e.style.transform="rotate("+ang+"deg)"
+ }
+}
+document.getElementById("s").onclick=()=>{
+ let d=[...document.querySelectorAll(".r")].map(r=>{
+  let b=r.getBoundingClientRect()
+  let p=c.getBoundingClientRect()
+  let rot=r.style.transform.match(/rotate\(([-\d.]+)deg\)/)
+  return {x:b.left-p.left,y:b.top-p.top,w:b.width,h:b.height,r:rot?parseFloat(rot[1]):0}
+ })
+ console.log(JSON.stringify(d))
+}
+</script>
+</body>
+</html>
