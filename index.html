@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slot Editor 1024</title>
+<title>Slot Editor + Chat</title>
 <style>
 body { margin:0; padding:0; display:flex; flex-direction:column; height:100vh; font-family:Arial,sans-serif; overflow:hidden; }
 #toolbar { display:flex; justify-content:center; padding:10px; background:#fff; border-bottom:1px solid #ccc; flex-shrink:0; }
@@ -14,6 +14,13 @@ button:hover { background:#0056b3; }
 .handle { width:12px; height:12px; background:#000; position:absolute; bottom:-6px; right:-6px; cursor:se-resize; }
 #messageArea { display:flex; flex-direction:column; padding:10px; background:#fff; border-top:1px solid #ccc; flex-shrink:0; width:100%; max-width:1024px; margin:0 auto; }
 #msgInput { width:100%; height:60px; padding:5px; font-size:14px; border:1px solid #ccc; border-radius:6px; margin-bottom:5px; }
+#messages { width:100%; max-height:150px; overflow-y:auto; border:1px solid #ccc; padding:5px; margin-bottom:5px; }
+.message.user { color:blue; margin-bottom:2px; }
+.message.bot { color:green; margin-bottom:2px; }
+#waitMessage { display:none; color:red; margin-bottom:5px; }
+#progressContainer { width:100%; height:10px; background:#eee; margin-bottom:5px; display:none; }
+#progressFill { height:100%; width:0%; background:green; }
+#links { display:none; margin-bottom:5px; }
 </style>
 </head>
 <body>
@@ -22,12 +29,20 @@ button:hover { background:#0056b3; }
 </div>
 <div id="canvas"></div>
 <div id="messageArea">
+  <div id="messages"></div>
   <textarea id="msgInput" placeholder="Type message..."></textarea>
+  <div id="waitMessage">Waiting for reply...</div>
+  <div id="progressContainer"><div id="progressFill"></div></div>
+  <div id="links">
+    <a id="playLink" href="#" target="_blank">Play Game</a> | 
+    <a id="downloadLink" href="#" target="_blank">Download Game</a>
+  </div>
   <button id="send">Send Data</button>
 </div>
 <script>
 const canvas=document.getElementById('canvas')
 let selected=null
+
 document.getElementById('addReel').onclick=()=>{addReel()}
 
 function addReel(){
@@ -99,21 +114,67 @@ document.addEventListener('wheel',e=>{
   selected.style.transform=`rotate(${angle}deg)`
 })
 
-document.getElementById('send').onclick=()=>{
-  const reels=document.querySelectorAll('.reel')
-  const data=Array.from(reels).map(r=>{
-    const rect=r.getBoundingClientRect()
-    const parent=canvas.getBoundingClientRect()
-    const angle=parseFloat(r.dataset.angle)||0
-    const x=(rect.left-parent.left+rect.width/2)/canvas.clientWidth*1024
-    const y=(rect.top-parent.top+rect.height/2)/canvas.clientHeight*1024
-    const w=rect.width/canvas.clientWidth*1024
-    const h=rect.height/canvas.clientHeight*1024
-    return {x,y,width:w,height:h,rotation:angle}
-  })
-  console.log("Message:", document.getElementById('msgInput').value)
-  console.log("Rects:", JSON.stringify(data))
+const url="https://tamica-inventoriable-kimbra.ngrok-free.app";
+const session_id="user_"+Math.floor(Math.random()*1000000);
+const sendButton=document.getElementById("send");
+
+function addMessage(text,sender){
+  const msgDiv=document.createElement("div");
+  msgDiv.className="message "+sender;
+  msgDiv.textContent=(sender==="user"?"You: ":"Bot: ")+text;
+  document.getElementById("messages").appendChild(msgDiv);
+  document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight;
 }
+
+function sendMessage(){
+  const input=document.getElementById("msgInput");
+  const message=input.value.trim();
+  if(!message||sendButton.disabled) return;
+  addMessage(message,"user");
+  input.value="";
+  document.getElementById("waitMessage").style.display="block";
+  fetch(`${url}/receive_message`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:message,session_id:session_id})
+  }).then(res=>res.json()).then(data=>{
+    if(data.status==="True"){ addMessage(data.reply,"bot") }
+    else{ addMessage("Error: "+data.reply,"bot") }
+    document.getElementById("waitMessage").style.display="none";
+  }).catch(err=>{
+    addMessage("Connection error. Please try again later.","bot");
+    document.getElementById("waitMessage").style.display="none";
+  })
+}
+
+function checkStatus(){
+  fetch(`${url}/get_status`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({session_id:session_id})
+  }).then(res=>res.json()).then(data=>{
+    const percent=data.process_percent;
+    const progressContainer=document.getElementById("progressContainer");
+    const progressFill=document.getElementById("progressFill");
+    const links=document.getElementById("links");
+    if(percent>0&&percent<100){
+      progressContainer.style.display="block"; links.style.display="none"; progressFill.style.width=percent+"%";
+      sendButton.disabled=true;
+    } else if(percent===100){
+      progressFill.style.width="100%"; progressContainer.style.display="block"; links.style.display="block";
+      const baseUrl=url;
+      document.getElementById("playLink").href=baseUrl+data.game_link;
+      document.getElementById("downloadLink").href=baseUrl+data.download_link;
+      const iframe=document.getElementById("gamePreview");
+      if(iframe) iframe.src=baseUrl+data.game_link;
+    } else {
+      progressContainer.style.display="none"; links.style.display="none"; progressFill.style.width="0%";
+    }
+  }).catch(err=>console.error("Error checking status:",err));
+}
+
+setInterval(checkStatus,1000);
+sendButton.onclick=sendMessage;
 </script>
 </body>
 </html>
