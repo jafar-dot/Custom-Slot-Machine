@@ -3,45 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slot Custom Shape</title>
+<title>Slot Editor 1024</title>
 <style>
-body { margin:0; padding:0; display:flex; flex-direction:column; height:100vh; font-family:Arial,sans-serif; }
-#home { display:flex; justify-content:center; align-items:center; flex:1; }
-#canvasPage { display:none; flex-direction:column; align-items:center; flex:1; }
-#buttons { display:flex; justify-content:center; margin:10px 0; flex-shrink:0; }
-#canvas { flex:1; width:90%; max-width:1024px; aspect-ratio:1/1; background:#fff; border:1px solid #ccc; position:relative; overflow:hidden; }
-.reel { position:absolute; background:rgba(0,150,255,0.5); cursor:move; transform-origin:0 0; }
+body { margin:0; padding:0; display:flex; flex-direction:column; height:100vh; font-family:Arial,sans-serif; overflow:hidden; }
+#toolbar { display:flex; justify-content:center; padding:10px; background:#fff; border-bottom:1px solid #ccc; flex-shrink:0; }
+button { background:#007bff; color:#fff; border:none; padding:10px 18px; border-radius:6px; font-size:15px; cursor:pointer; }
+button:hover { background:#0056b3; }
+#canvas { flex:1; width:100%; max-width:1024px; aspect-ratio:1/1; background:#fff; border:1px solid #ccc; position:relative; overflow:hidden; margin:0 auto; }
+.reel { position:absolute; background:rgba(0,150,255,0.5); transform-origin:0 0; cursor:pointer; }
 .handle { width:12px; height:12px; background:#000; position:absolute; bottom:-6px; right:-6px; cursor:se-resize; }
+#messageArea { display:flex; flex-direction:column; padding:10px; background:#fff; border-top:1px solid #ccc; flex-shrink:0; width:100%; max-width:1024px; margin:0 auto; }
+#msgInput { width:100%; height:60px; padding:5px; font-size:14px; border:1px solid #ccc; border-radius:6px; margin-bottom:5px; }
 </style>
 </head>
 <body>
-<div id="home">
-  <button id="goCustom">Go to Custom Shape</button>
+<div id="toolbar">
+  <button id="addReel">Add Rect</button>
 </div>
-<div id="canvasPage">
-  <div id="buttons">
-    <button id="addReel">Add Reel</button>
-    <button id="back">Back</button>
-  </div>
-  <div id="canvas"></div>
-  <div id="messageArea" style="width:90%; max-width:1024px; margin:10px 0; display:flex; flex-direction:column;">
-    <textarea id="msgInput" style="width:100%; height:60px; padding:5px;" placeholder="Type message..."></textarea>
-    <button id="send" style="margin-top:5px;">Send Data</button>
-  </div>
+<div id="canvas"></div>
+<div id="messageArea">
+  <textarea id="msgInput" placeholder="Type message..."></textarea>
+  <button id="send">Send Data</button>
 </div>
 <script>
-const home=document.getElementById('home')
-const canvasPage=document.getElementById('canvasPage')
 const canvas=document.getElementById('canvas')
-document.getElementById('goCustom').onclick=()=>{home.style.display='none'; canvasPage.style.display='flex'}
-document.getElementById('back').onclick=()=>{canvasPage.style.display='none'; home.style.display='flex'}
-
+let selected=null
 document.getElementById('addReel').onclick=()=>{addReel()}
+
 function addReel(){
   const reel=document.createElement('div')
   reel.classList.add('reel')
   reel.style.width='100px'
-  reel.style.height='200px'
+  reel.style.height='100px'
   reel.style.left='50%'
   reel.style.top='50%'
   reel.style.transform='translate(-50%,-50%) rotate(0deg)'
@@ -51,9 +44,8 @@ function addReel(){
   reel.appendChild(handle)
   canvas.appendChild(reel)
   makeDraggable(reel)
-  makeRotatable(reel)
   makeResizable(reel,handle)
-  reel.oncontextmenu=e=>{e.preventDefault(); reel.remove()}
+  reel.onclick=()=>{selected=reel}
 }
 
 function makeDraggable(el){
@@ -79,19 +71,6 @@ function makeDraggable(el){
   })
 }
 
-function makeRotatable(el){
-  el.addEventListener('wheel',e=>{
-    e.preventDefault()
-    let angle=parseFloat(el.dataset.angle)||0
-    angle+=e.deltaY>0?5:-5
-    el.dataset.angle=angle
-    el.style.transform=`rotate(${angle}deg)`
-    const handle=el.querySelector('.handle')
-    handle.style.transform=`rotate(${-angle}deg)`
-    constrainRotation(el)
-  })
-}
-
 function makeResizable(el,handle){
   let startX,startY,startW,startH
   handle.addEventListener('mousedown',e=>{
@@ -103,7 +82,6 @@ function makeResizable(el,handle){
       let newH=Math.max(20,startH+(ev.clientY-startY))
       el.style.width=newW+'px'
       el.style.height=newH+'px'
-      constrainRotation(el)
     }
     function upHandler(){document.removeEventListener('mousemove',moveHandler); document.removeEventListener('mouseup',upHandler)}
     document.addEventListener('mousemove',moveHandler)
@@ -111,16 +89,14 @@ function makeResizable(el,handle){
   })
 }
 
-function constrainRotation(el){
-  const rect=el.getBoundingClientRect()
-  const parent=canvas.getBoundingClientRect()
-  let offsetX=rect.left-parent.left, offsetY=rect.top-parent.top
-  let w=rect.width, h=rect.height
-  if(offsetX<0) el.style.left='0px'
-  if(offsetY<0) el.style.top='0px'
-  if(offsetX+w>canvas.clientWidth) el.style.left=(canvas.clientWidth-w)+'px'
-  if(offsetY+h>canvas.clientHeight) el.style.top=(canvas.clientHeight-h)+'px'
-}
+document.addEventListener('wheel',e=>{
+  if(!selected) return
+  e.preventDefault()
+  let angle=parseFloat(selected.dataset.angle)||0
+  angle+=e.deltaY>0?5:-5
+  selected.dataset.angle=angle
+  selected.style.transform=`rotate(${angle}deg)`
+})
 
 document.getElementById('send').onclick=()=>{
   const reels=document.querySelectorAll('.reel')
