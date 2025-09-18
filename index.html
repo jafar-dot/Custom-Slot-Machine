@@ -4,7 +4,7 @@
 <title>Editor</title>
 <style>
 #c{width:90%;height:70vh;border:1px solid #000;position:relative;margin-top:10px;background:#f9f9f9}
-.box{position:absolute;width:120px;height:160px;top:50px;left:50px;transform:rotate(0deg);border:1px dashed #333}
+.box{position:absolute;border:1px dashed #333;transform-origin:center center;}
 .handle{width:10px;height:10px;background:#fff;border:1px solid #000;position:absolute}
 .handle.corner{cursor:nwse-resize}
 .handle.side-x{cursor:ew-resize}
@@ -18,13 +18,28 @@
 <div id="c"></div>
 <script>
 const c=document.getElementById("c")
-let current=null, startX, startY, startW, startH, startAngle, center
+let current=null
 
 document.getElementById("add").onclick=()=>{
  let b=document.createElement("div")
  b.className="box"
+ b.dataset.x=100
+ b.dataset.y=100
+ b.dataset.w=120
+ b.dataset.h=160
+ b.dataset.rot=0
+ updateBox(b)
  addHandles(b)
  c.appendChild(b)
+}
+
+function updateBox(b){
+ let x=+b.dataset.x, y=+b.dataset.y, w=+b.dataset.w, h=+b.dataset.h, rot=+b.dataset.rot
+ b.style.width=w+"px"
+ b.style.height=h+"px"
+ b.style.left=(x-w/2)+"px"
+ b.style.top=(y-h/2)+"px"
+ b.style.transform=`rotate(${rot}deg)`
 }
 
 function addHandles(b){
@@ -61,11 +76,13 @@ function addHandles(b){
  b.onmousedown=e=>{
    if(e.target!==b) return
    current=b
-   startX=e.clientX- b.offsetLeft
-   startY=e.clientY- b.offsetTop
+   let startX=e.clientX, startY=e.clientY
+   let x=+b.dataset.x, y=+b.dataset.y
    document.onmousemove=ev=>{
-     b.style.left=(ev.clientX-startX)+"px"
-     b.style.top=(ev.clientY-startY)+"px"
+     let dx=ev.clientX-startX, dy=ev.clientY-startY
+     b.dataset.x=x+dx
+     b.dataset.y=y+dy
+     updateBox(b)
    }
    document.onmouseup=()=>{document.onmousemove=null}
  }
@@ -74,48 +91,57 @@ function addHandles(b){
 function resizeStart(e,box,dir){
  e.stopPropagation()
  current=box
- startX=e.clientX; startY=e.clientY
- let rect=box.getBoundingClientRect()
- startW=rect.width; startH=rect.height
+ let startX=e.clientX, startY=e.clientY
+ let w=+box.dataset.w, h=+box.dataset.h
+ let x=+box.dataset.x, y=+box.dataset.y
+ let rot=+box.dataset.rot*Math.PI/180
  document.onmousemove=ev=>{
-   let dx=ev.clientX-startX, dy=ev.clientY-startY
-   if(dir==="tr"){box.style.width=(startW+dx)+"px";box.style.height=(startH-dy)+"px";box.style.top=(box.offsetTop+dy)+"px"}
-   if(dir==="tl"){box.style.width=(startW-dx)+"px";box.style.height=(startH-dy)+"px";box.style.left=(box.offsetLeft+dx)+"px";box.style.top=(box.offsetTop+dy)+"px"}
-   if(dir==="br"){box.style.width=(startW+dx)+"px";box.style.height=(startH+dy)+"px"}
-   if(dir==="bl"){box.style.width=(startW-dx)+"px";box.style.height=(startH+dy)+"px";box.style.left=(box.offsetLeft+dx)+"px"}
-   if(dir==="top"){box.style.height=(startH-dy)+"px";box.style.top=(box.offsetTop+dy)+"px"}
-   if(dir==="bottom"){box.style.height=(startH+dy)+"px"}
-   if(dir==="left"){box.style.width=(startW-dx)+"px";box.style.left=(box.offsetLeft+dx)+"px"}
-   if(dir==="right"){box.style.width=(startW+dx)+"px"}
+   let dx=(ev.clientX-startX)
+   let dy=(ev.clientY-startY)
+   // rotate mouse delta into local box space
+   let localX=dx*Math.cos(-rot)-dy*Math.sin(-rot)
+   let localY=dx*Math.sin(-rot)+dy*Math.cos(-rot)
+   let newW=w, newH=h, newX=x, newY=y
+   if(dir==="tr"){newW=w+localX; newH=h-localY; newY=y+localY/2}
+   if(dir==="tl"){newW=w-localX; newX=x+localX/2; newH=h-localY; newY=y+localY/2}
+   if(dir==="br"){newW=w+localX; newH=h+localY; newY=y+localY/2}
+   if(dir==="bl"){newW=w-localX; newX=x+localX/2; newH=h+localY; newY=y+localY/2}
+   if(dir==="top"){newH=h-localY; newY=y+localY/2}
+   if(dir==="bottom"){newH=h+localY; newY=y+localY/2}
+   if(dir==="left"){newW=w-localX; newX=x+localX/2}
+   if(dir==="right"){newW=w+localX; newX=x+localX/2}
+   if(newW>20 && newH>20){
+     box.dataset.w=newW
+     box.dataset.h=newH
+     box.dataset.x=newX
+     box.dataset.y=newY
+     updateBox(box)
+   }
  }
  document.onmouseup=()=>{document.onmousemove=null}
 }
 
 function rotateStart(e,box){
  e.stopPropagation()
- current=box
  let rect=box.getBoundingClientRect()
- center={x:rect.left+rect.width/2,y:rect.top+rect.height/2}
- startAngle=getRotation(box)
+ let cx=rect.left+rect.width/2, cy=rect.top+rect.height/2
  document.onmousemove=ev=>{
-   let dx=ev.clientX-center.x, dy=ev.clientY-center.y
-   let angle=Math.atan2(dy,dx)*180/Math.PI
-   box.style.transform="rotate("+(angle)+"deg)"
+   let angle=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI
+   box.dataset.rot=angle
+   updateBox(box)
  }
  document.onmouseup=()=>{document.onmousemove=null}
 }
 
-function getRotation(el){
- let st=window.getComputedStyle(el).transform
- if(st==="none") return 0
- let m=new WebKitCSSMatrix(st)
- return Math.round(Math.atan2(m.b,m.a)*180/Math.PI)
-}
-
 document.getElementById("send").onclick=()=>{
  let d=[...document.querySelectorAll(".box")].map(b=>{
-  let r=b.getBoundingClientRect(), p=c.getBoundingClientRect()
-  return {x:r.left-p.left,y:r.top-p.top,w:r.width,h:r.height,rot:getRotation(b)}
+   return {
+     x:+b.dataset.x,
+     y:+b.dataset.y,
+     w:+b.dataset.w,
+     h:+b.dataset.h,
+     rot:+b.dataset.rot
+   }
  })
  console.log(JSON.stringify(d))
 }
