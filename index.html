@@ -6,71 +6,113 @@
 body {
   margin:0;
   display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  height:100vh;
+  background:#f0f2f5;
+  font-family:Arial, sans-serif;
+}
+#toolbar {
+  display:flex;
+  gap:10px;
+  margin:15px;
+}
+button {
+  background:#007bff;
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:6px;
+  font-size:15px;
+  cursor:pointer;
+  transition:background 0.3s;
+}
+button:hover { background:#0056b3; }
+#outer {
+  flex:1;
+  display:flex;
   align-items:center;
   justify-content:center;
-  height:100vh;
-  background:#eee;
+  width:100%;
 }
-#outer {
+#workspace {
   position:relative;
-  width:90vmin;  /* keep square in viewport */
+  width:90vmin;
   height:90vmin;
   border:2px solid #000;
-  background:#fafafa;
-}
-#c {
-  position:absolute;
-  inset:0;
+  background:#fff;
 }
 .box {
   position:absolute;
   border:1px dashed #333;
   background:rgba(255,0,0,0.2);
-  transform-origin:0 0; /* anchor top-left */
+  transform-origin:0 0;
 }
 .handle{width:10px;height:10px;background:#fff;border:1px solid #000;position:absolute}
 .handle.corner{cursor:nwse-resize}
 .handle.side-x{cursor:ew-resize}
 .handle.side-y{cursor:ns-resize}
 .handle.rotate{cursor:grab;width:12px;height:12px;border-radius:50%;background:#0af;top:-25px;left:50%;transform:translateX(-50%)}
+#messageArea {
+  width:90%;
+  max-width:700px;
+  margin:15px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+#msgLabel {
+  font-size:14px;
+  font-weight:bold;
+}
+#msgInput {
+  resize:none;
+  padding:10px;
+  font-size:14px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  min-height:60px;
+}
 </style>
 </head>
 <body>
-<div id="outer">
-  <div id="c"></div>
+<div id="toolbar">
+  <button id="addRect">Add Rect</button>
+  <button id="send">Send</button>
 </div>
+<div id="outer">
+  <div id="workspace"></div>
+</div>
+<div id="messageArea">
+  <div id="msgLabel">Message:</div>
+  <textarea id="msgInput" placeholder="Type your message..."></textarea>
+  <button id="sendMsg">Send Data</button>
+</div>
+
 <script>
-const c=document.getElementById("c")
+const c=document.getElementById("workspace")
 const SPACE=1024
 
-// convert logical (1024x1024) -> screen pixels
 function toScreen(v){return v * (c.clientWidth/SPACE)}
 function fromScreen(v){return v / (c.clientWidth/SPACE)}
 
 function updateBox(b){
-  let x=+b.dataset.x, y=+b.dataset.y, w=+b.dataset.w, h=+b.dataset.h, rot=+b.dataset.rot
-  b.style.width=toScreen(w)+"px"
-  b.style.height=toScreen(h)+"px"
-  b.style.left=toScreen(x)+"px"
-  b.style.top=toScreen(y)+"px"
-  b.style.transform=`rotate(${rot}deg)`
+  b.style.width=toScreen(+b.dataset.w)+"px"
+  b.style.height=toScreen(+b.dataset.h)+"px"
+  b.style.left=toScreen(+b.dataset.x)+"px"
+  b.style.top=toScreen(+b.dataset.y)+"px"
+  b.style.transform=`rotate(${+b.dataset.rot}deg)`
 }
 
 function addBox(x=100,y=100,w=200,h=150){
   let b=document.createElement("div")
   b.className="box"
-  b.dataset.x=x
-  b.dataset.y=y
-  b.dataset.w=w
-  b.dataset.h=h
-  b.dataset.rot=0
+  b.dataset.x=x; b.dataset.y=y; b.dataset.w=w; b.dataset.h=h; b.dataset.rot=0
   updateBox(b)
   addHandles(b)
   c.appendChild(b)
 }
-
-// Add 1 default box
-addBox(100,100,200,150)
 
 function addHandles(b){
   let corners=["tl","tr","bl","br"]
@@ -102,8 +144,8 @@ function addHandles(b){
   rot.className="handle rotate"
   b.appendChild(rot)
   rot.onmousedown=e=>rotateStart(e,b)
-  
-  // Drag whole box
+
+  // Move box
   b.onmousedown=e=>{
     if(e.target!==b) return
     let startX=e.clientX, startY=e.clientY
@@ -140,12 +182,8 @@ function resizeStart(e,box,dir){
     if(dir==="bottom"){newH=h+localY}
     if(dir==="left"){newW=w-localX; newX=x+localX}
     if(dir==="right"){newW=w+localX}
-    // Clamp inside space
     if(newW>=20 && newH>=20 && newX>=0 && newY>=0 && newX+newW<=SPACE && newY+newH<=SPACE){
-      box.dataset.w=newW
-      box.dataset.h=newH
-      box.dataset.x=newX
-      box.dataset.y=newY
+      box.dataset.w=newW; box.dataset.h=newH; box.dataset.x=newX; box.dataset.y=newY
       updateBox(box)
     }
   }
@@ -155,7 +193,6 @@ function resizeStart(e,box,dir){
 function rotateStart(e,box){
   e.stopPropagation()
   let rect=c.getBoundingClientRect()
-  let scale=SPACE/c.clientWidth
   let cx=toScreen(+box.dataset.x + +box.dataset.w/2) + rect.left
   let cy=toScreen(+box.dataset.y + +box.dataset.h/2) + rect.top
   document.onmousemove=ev=>{
@@ -166,19 +203,23 @@ function rotateStart(e,box){
   document.onmouseup=()=>document.onmousemove=null
 }
 
-// Debug: print rects
-window.addEventListener("keydown",e=>{
-  if(e.key==="s"){
-    let data=[...document.querySelectorAll(".box")].map(b=>({
-      x:+b.dataset.x,
-      y:+b.dataset.y,
-      w:+b.dataset.w,
-      h:+b.dataset.h,
-      rot:+b.dataset.rot
-    }))
-    console.log(JSON.stringify(data,null,2))
-  }
-})
+function collectData(){
+  return [...document.querySelectorAll(".box")].map(b=>({
+    x:+b.dataset.x,
+    y:+b.dataset.y,
+    w:+b.dataset.w,
+    h:+b.dataset.h,
+    rot:+b.dataset.rot
+  }))
+}
+
+document.getElementById("addRect").onclick=()=>addBox(100,100,200,150)
+document.getElementById("send").onclick=()=>console.log(JSON.stringify(collectData(),null,2))
+document.getElementById("sendMsg").onclick=()=>{
+  let msg=document.getElementById("msgInput").value
+  console.log("Message:",msg)
+  console.log("Rects:",JSON.stringify(collectData(),null,2))
+}
 </script>
 </body>
 </html>
