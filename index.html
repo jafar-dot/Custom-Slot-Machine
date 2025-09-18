@@ -1,22 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Editor 1024 Space</title>
 <style>
-body {
+html,body {
   margin:0;
+  height:100%;
   display:flex;
   flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  height:100vh;
-  background:#f0f2f5;
   font-family:Arial, sans-serif;
+  background:#f0f2f5;
 }
 #toolbar {
-  display:flex;
-  gap:10px;
-  margin:15px;
+  padding:10px;
 }
 button {
   background:#007bff;
@@ -34,7 +31,7 @@ button:hover { background:#0056b3; }
   display:flex;
   align-items:center;
   justify-content:center;
-  width:100%;
+  min-height:0;
 }
 #workspace {
   position:relative;
@@ -49,23 +46,29 @@ button:hover { background:#0056b3; }
   background:rgba(255,0,0,0.2);
   transform-origin:0 0;
 }
-.handle{width:10px;height:10px;background:#fff;border:1px solid #000;position:absolute}
-.handle.corner{cursor:nwse-resize}
-.handle.side-x{cursor:ew-resize}
-.handle.side-y{cursor:ns-resize}
-.handle.rotate{cursor:grab;width:12px;height:12px;border-radius:50%;background:#0af;top:-25px;left:50%;transform:translateX(-50%)}
+.handle{
+  width:10px;height:10px;
+  background:#fff;
+  border:1px solid #000;
+  position:absolute;
+}
+.handle.rotate {
+  cursor:grab;
+  width:12px;height:12px;
+  border-radius:50%;
+  background:#0af;
+  top:-25px;left:50%;
+  transform:translateX(-50%);
+}
 #messageArea {
-  width:90%;
-  max-width:700px;
-  margin:15px;
+  padding:10px;
+  background:#fff;
+  border-top:1px solid #ccc;
   display:flex;
   flex-direction:column;
   gap:8px;
 }
-#msgLabel {
-  font-size:14px;
-  font-weight:bold;
-}
+#msgLabel { font-size:14px; font-weight:bold; }
 #msgInput {
   resize:none;
   padding:10px;
@@ -79,7 +82,6 @@ button:hover { background:#0056b3; }
 <body>
 <div id="toolbar">
   <button id="addRect">Add Rect</button>
-  <button id="send">Send</button>
 </div>
 <div id="outer">
   <div id="workspace"></div>
@@ -115,28 +117,18 @@ function addBox(x=100,y=100,w=200,h=150){
 }
 
 function addHandles(b){
-  let corners=["tl","tr","bl","br"]
-  corners.forEach(pos=>{
+  const positions=["tl","tr","bl","br","top","bottom","left","right"]
+  positions.forEach(pos=>{
     let h=document.createElement("div")
-    h.className="handle corner "+pos
+    h.className="handle "+pos
     if(pos==="tl"){h.style.left="-5px";h.style.top="-5px"}
     if(pos==="tr"){h.style.right="-5px";h.style.top="-5px"}
     if(pos==="bl"){h.style.left="-5px";h.style.bottom="-5px"}
     if(pos==="br"){h.style.right="-5px";h.style.bottom="-5px"}
-    b.appendChild(h)
-    h.onmousedown=e=>resizeStart(e,b,pos)
-  })
-  ;["top","bottom"].forEach(pos=>{
-    let h=document.createElement("div")
-    h.className="handle side-y "+pos
-    h.style[pos]="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"
-    b.appendChild(h)
-    h.onmousedown=e=>resizeStart(e,b,pos)
-  })
-  ;["left","right"].forEach(pos=>{
-    let h=document.createElement("div")
-    h.className="handle side-x "+pos
-    h.style[pos]="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"
+    if(pos==="top"){h.style.top="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"}
+    if(pos==="bottom"){h.style.bottom="-5px";h.style.left="50%";h.style.transform="translateX(-50%)"}
+    if(pos==="left"){h.style.left="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"}
+    if(pos==="right"){h.style.right="-5px";h.style.top="50%";h.style.transform="translateY(-50%)"}
     b.appendChild(h)
     h.onmousedown=e=>resizeStart(e,b,pos)
   })
@@ -145,7 +137,7 @@ function addHandles(b){
   b.appendChild(rot)
   rot.onmousedown=e=>rotateStart(e,b)
 
-  // Move box
+  // move
   b.onmousedown=e=>{
     if(e.target!==b) return
     let startX=e.clientX, startY=e.clientY
@@ -154,8 +146,7 @@ function addHandles(b){
       let dx=fromScreen(ev.clientX-startX), dy=fromScreen(ev.clientY-startY)
       let newX=Math.min(Math.max(0,x+dx),SPACE-+b.dataset.w)
       let newY=Math.min(Math.max(0,y+dy),SPACE-+b.dataset.h)
-      b.dataset.x=newX
-      b.dataset.y=newY
+      b.dataset.x=newX; b.dataset.y=newY
       updateBox(b)
     }
     document.onmouseup=()=>document.onmousemove=null
@@ -199,8 +190,18 @@ function rotateStart(e,box){
     let angle=Math.atan2(ev.clientY-cy,ev.clientX-cx)*180/Math.PI
     box.dataset.rot=angle
     updateBox(box)
+    // update cursors based on angle
+    updateCursors(box,angle)
   }
   document.onmouseup=()=>document.onmousemove=null
+}
+
+function updateCursors(box,angle){
+  let hs=box.querySelectorAll(".handle")
+  hs.forEach(h=>{
+    if(h.classList.contains("rotate")) return
+    h.style.cursor=`${Math.round(angle/45)%8}-resize`
+  })
 }
 
 function collectData(){
@@ -214,7 +215,6 @@ function collectData(){
 }
 
 document.getElementById("addRect").onclick=()=>addBox(100,100,200,150)
-document.getElementById("send").onclick=()=>console.log(JSON.stringify(collectData(),null,2))
 document.getElementById("sendMsg").onclick=()=>{
   let msg=document.getElementById("msgInput").value
   console.log("Message:",msg)
