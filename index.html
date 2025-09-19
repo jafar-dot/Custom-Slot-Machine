@@ -181,7 +181,7 @@
   <script>
     const canvas = document.getElementById('canvas');
     const sendButton = document.getElementById("send");
-    const url = "https://tamica-inventoriable-kimbra.ngrok-free.app";
+    const url = "https://5ec71ab73fd0.ngrok-free.app";
     const session_id = "user_" + Math.floor(Math.random() * 1000000);
 
     document.getElementById('addReel').onclick = () => { addReel() };
@@ -220,7 +220,7 @@
           let newX = origX + (ev.clientX - startX);
           let newY = origY + (ev.clientY - startY);
 
-          // prevent going out of bounds
+
           newX = Math.max(0, Math.min(newX, canvas.clientWidth - el.offsetWidth));
           newY = Math.max(0, Math.min(newY, canvas.clientHeight - el.offsetHeight));
 
@@ -247,7 +247,7 @@
           let newW = Math.max(20, startW + (ev.clientX - startX));
           let newH = Math.max(20, startH + (ev.clientY - startY));
 
-          // prevent resizing outside bounds
+         
           newW = Math.min(newW, canvas.clientWidth - el.offsetLeft);
           newH = Math.min(newH, canvas.clientHeight - el.offsetTop);
 
@@ -263,7 +263,7 @@
       });
     }
 
-    // REMOVE rotation feature entirely
+   
     document.removeEventListener('wheel', () => {});
 
     function addMessage(text, sender) {
