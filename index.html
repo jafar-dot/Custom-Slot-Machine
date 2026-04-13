@@ -148,7 +148,7 @@ async function renderPlay(gameId) {
   if (!getToken()) return go('login');
   try {
     const d = await api('/launch', { method: 'POST', body: JSON.stringify({ game_id: gameId })});
-    app.innerHTML = `<div class="iframe-wrap"><iframe src="${d.play_url}"></iframe></div>`;
+    app.innerHTML = `<div class="iframe-wrap"><iframe src="https://jaafar.ngrok.app${d.play_url}"></iframe></div>`;
   } catch (e) { app.innerHTML = `<div class="empty">Cannot launch: ${e.message}</div>`; }
 }
 </script>
