@@ -148,7 +148,8 @@ async function renderPlay(gameId) {
   if (!getToken()) return go('login');
   try {
     const d = await api('/launch', { method: 'POST', body: JSON.stringify({ game_id: gameId })});
-    const base = API.replace(/\/api$/, '');
+    let base = API.replace(/\/api$/, '');
+    if (base.startsWith('http://')) base = 'https://' + base.slice(7);
     const gameUrl = base + d.play_url;
     app.innerHTML = `<div class="iframe-wrap"><iframe src="${gameUrl}"></iframe></div>`;
   } catch (e) { app.innerHTML = `<div class="empty">Cannot launch: ${e.message}</div>`; }
