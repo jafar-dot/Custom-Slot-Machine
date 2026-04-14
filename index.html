@@ -87,6 +87,19 @@ async function renderUserBar() {
   } catch (e) { clearSession(); userBar.innerHTML = ''; }
 }
 
+// Listen for balance updates from the game iframe after every spin
+window.addEventListener('message', function(ev) {
+  if (ev.data && ev.data.type === 'balance_update' && typeof ev.data.balance_cents === 'number') {
+    const el = userBar.querySelector('.balance');
+    if (el) {
+      const cur = (el.textContent.match(/[A-Z]+$/) || ['SC'])[0];
+      el.textContent = (ev.data.balance_cents / 100).toFixed(2) + ' ' + cur;
+    }
+  }
+});
+// Fallback: refresh balance every 10s while logged in
+setInterval(() => { if (getToken()) renderUserBar(); }, 10000);
+
 function renderLogin() {
   app.innerHTML = `<div class="form-card"><h2>Login</h2>
     <input id="email" type="email" placeholder="Email">
