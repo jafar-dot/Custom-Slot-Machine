@@ -3,124 +3,66 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>My Casino | Premium iGaming</title>
-<!-- Tailwind CSS for styling -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Phosphor Icons for professional iconography -->
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          brand: {
-            bg: '#0b0e14',
-            surface: '#1a1f2e',
-            border: '#2a3142',
-            primary: '#00e5ff',
-            success: '#00e676',
-            danger: '#ff4444',
-          }
-        },
-        fontFamily: {
-          sans: ['Inter', 'system-ui', 'sans-serif'],
-        }
-      }
-    }
-  }
-</script>
-
+<title>My Casino</title>
 <style>
-  /* Custom scrollbar for a premium feel */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: #0b0e14; }
-  ::-webkit-scrollbar-thumb { background: #2a3142; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #3a4152; }
-  
-  /* Form input autofill styling fix for dark mode */
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover, 
-  input:-webkit-autofill:focus, 
-  input:-webkit-autofill:active{
-      -webkit-box-shadow: 0 0 0 30px #1a1f2e inset !important;
-      -webkit-text-fill-color: white !important;
-  }
-  
-  .glass-panel {
-      background: rgba(26, 31, 46, 0.7);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-  }
-  
-  .loader {
-      border: 3px solid rgba(0, 229, 255, 0.1);
-      border-bottom-color: #00e5ff;
-      border-radius: 50%;
-      display: inline-block;
-      box-sizing: border-box;
-      animation: rotation 1s linear infinite;
-  }
-  @keyframes rotation {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #111; color: #eee; }
+  header { background: #0a0a0a; padding: 1em 2em; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+  header h1 { color: #00e5ff; font-size: 1.3em; }
+  #user-bar { font-size: 0.9em; }
+  #user-bar .balance { color: #00e676; font-weight: bold; margin-right: 1em; }
+  #user-bar a { color: #00e5ff; text-decoration: none; margin-left: 1em; cursor: pointer; }
+  main { padding: 2em; max-width: 1200px; margin: auto; }
+  .form-card { background: #1a1a1a; padding: 2em; max-width: 360px; margin: 2em auto; border-radius: 8px; }
+  .form-card h2 { margin-bottom: 1em; color: #00e5ff; }
+  .form-card input { width: 100%; padding: 0.7em; margin-bottom: 0.7em; background: #222; border: 1px solid #444; color: #eee; border-radius: 4px; font-size: 14px; }
+  .form-card button { width: 100%; padding: 0.8em; background: #00e5ff; color: #000; border: 0; border-radius: 4px; font-weight: bold; cursor: pointer; }
+  .form-card .switch { text-align: center; margin-top: 1em; font-size: 0.9em; }
+  .form-card .switch a { color: #00e5ff; cursor: pointer; }
+  .bonus { background: rgba(0,230,118,0.1); color: #00e676; padding: 0.7em; border-radius: 4px; margin-bottom: 1em; text-align: center; font-size: 0.9em; }
+  .error { color: #ff4444; margin-top: 0.5em; font-size: 0.85em; }
+  .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1em; }
+  .game-card { background: #1a1a1a; padding: 1em; border-radius: 8px; cursor: pointer; transition: transform 0.2s; text-align: center; }
+  .game-card:hover { transform: translateY(-3px); }
+  .game-card img { width: 100%; height: 140px; object-fit: cover; background: #333; border-radius: 4px; margin-bottom: 0.5em; }
+  .game-card h3 { color: #00e5ff; font-size: 1em; }
+  .game-card .rtp { color: #888; font-size: 0.8em; margin-top: 0.3em; }
+  .empty { text-align: center; padding: 3em; color: #666; }
+  .iframe-wrap { width: 100%; height: calc(100vh - 80px); }
+  .iframe-wrap iframe { width: 100%; height: 100%; border: 0; }
+  .message { padding: 1em; background: #1a1a1a; border-radius: 8px; max-width: 500px; margin: 2em auto; text-align: center; }
+  .message .small { color: #888; font-size: 0.85em; margin-top: 0.7em; }
 </style>
 </head>
-<body class="bg-brand-bg text-slate-200 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-black">
+<body>
 
-<!-- Header -->
-<header class="sticky top-0 z-50 glass-panel border-b border-brand-border px-4 py-3 sm:px-6 lg:px-8">
-  <div class="max-w-7xl mx-auto flex justify-between items-center">
-    <div class="flex items-center gap-2 cursor-pointer group" onclick="go('lobby')">
-      <div class="bg-brand-primary/10 p-2 rounded-lg text-brand-primary group-hover:bg-brand-primary group-hover:text-black transition-colors">
-        <i class="ph-fill ph-club font-bold text-xl"></i>
-      </div>
-      <h1 class="text-xl font-black tracking-tight text-white group-hover:text-brand-primary transition-colors">MY CASINO</h1>
-    </div>
-    <div id="user-bar" class="flex items-center text-sm font-medium">
-      <!-- Injected via JS -->
-    </div>
-  </div>
+<header>
+  <h1>My Casino</h1>
+  <div id="user-bar"></div>
 </header>
 
-<!-- Main Content Area -->
-<main id="app" class="flex-grow flex flex-col w-full"></main>
+<main id="app"></main>
 
 <script>
-// --- Configurations & State ---
 const API = 'https://jaafar.ngrok.app/api';
 const app = document.getElementById('app');
 const userBar = document.getElementById('user-bar');
 
 function getToken() { return localStorage.getItem('token'); }
-function setSession(token, playerId) { 
-    localStorage.setItem('token', token); 
-    localStorage.setItem('player_id', playerId); 
-}
-function clearSession() { 
-    localStorage.removeItem('token'); 
-    localStorage.removeItem('player_id'); 
-}
+function setSession(token, playerId) { localStorage.setItem('token', token); localStorage.setItem('player_id', playerId); }
+function clearSession() { localStorage.removeItem('token'); localStorage.removeItem('player_id'); }
 
-// --- API Handler ---
 async function api(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
   if (token) headers['Authorization'] = 'Bearer ' + token;
-  
   const r = await fetch(API + path, { ...opts, headers });
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.detail || data.error || 'Request failed. Please try again.');
+  if (!r.ok) throw new Error(data.detail || data.error || 'request failed');
   return data;
 }
 
-// --- Router ---
-function go(route) { 
-    location.hash = route; 
-    window.scrollTo(0, 0);
-    render(); 
-}
+function go(route) { location.hash = route; render(); }
 window.go = go;
 window.logout = function() { clearSession(); go('login'); };
 window.addEventListener('hashchange', render);
@@ -129,341 +71,89 @@ window.addEventListener('DOMContentLoaded', render);
 async function render() {
   const route = location.hash.slice(1) || (getToken() ? 'lobby' : 'login');
   await renderUserBar();
-  
   if (route === 'login') return renderLogin();
   if (route === 'signup') return renderSignup();
   if (route === 'check-email') return renderCheckEmail();
   if (route === 'lobby') return renderLobby();
   if (route.startsWith('play/')) return renderPlay(route.slice(5));
-  
   go('login');
 }
 
-// --- View: User Bar ---
 async function renderUserBar() {
-  if (!getToken()) { 
-      userBar.innerHTML = ''; 
-      return; 
-  }
+  if (!getToken()) { userBar.innerHTML = ''; return; }
   try {
     const me = await api('/me');
-    userBar.innerHTML = `
-      <div class="flex items-center gap-4 bg-brand-surface border border-brand-border rounded-full py-1.5 px-2 pr-4 shadow-sm">
-        <div class="flex items-center gap-2 bg-brand-bg rounded-full py-1 px-3 border border-brand-border">
-          <i class="ph-fill ph-wallet text-brand-success"></i>
-          <span class="text-brand-success font-bold tracking-wide">${(me.balance_cents / 100).toFixed(2)} <span class="text-xs text-brand-success/70">${me.currency}</span></span>
-        </div>
-        <button onclick="logout()" class="text-slate-400 hover:text-white transition-colors" title="Logout">
-          <i class="ph ph-sign-out text-lg"></i>
-        </button>
-      </div>
-    `;
-  } catch (e) { 
-      clearSession(); 
-      userBar.innerHTML = ''; 
-  }
+    userBar.innerHTML = `<span class="balance">${(me.balance_cents / 100).toFixed(2)} ${me.currency}</span><a onclick="go('lobby')">Lobby</a><a onclick="logout()">Logout</a>`;
+  } catch (e) { clearSession(); userBar.innerHTML = ''; }
 }
 
-// --- View: Login ---
 function renderLogin() {
-  app.innerHTML = `
-    <div class="flex-grow flex items-center justify-center p-4">
-      <div class="bg-brand-surface border border-brand-border w-full max-w-md p-8 rounded-2xl shadow-2xl">
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary mb-4">
-            <i class="ph-fill ph-user text-2xl"></i>
-          </div>
-          <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
-          <p class="text-slate-400 text-sm mt-1">Sign in to continue your session</p>
-        </div>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
-            <div class="relative">
-              <i class="ph ph-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-              <input id="email" type="email" placeholder="player@example.com" class="w-full bg-brand-bg border border-brand-border rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-            <div class="relative">
-              <i class="ph ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-              <input id="pw" type="password" placeholder="••••••••" class="w-full bg-brand-bg border border-brand-border rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all" onkeypress="if(event.key === 'Enter') doLogin()">
-            </div>
-          </div>
-          
-          <div id="err" class="hidden bg-brand-danger/10 border border-brand-danger/20 text-brand-danger text-sm rounded-lg p-3 flex items-start gap-2">
-            <i class="ph-fill ph-warning-circle mt-0.5"></i>
-            <span id="err-text"></span>
-          </div>
-          
-          <button onclick="doLogin()" class="w-full bg-brand-primary hover:bg-[#00cce6] text-black font-bold rounded-lg py-3 transition-colors active:scale-[0.98]">
-            Sign In
-          </button>
-        </div>
-        
-        <div class="mt-6 text-center text-sm text-slate-400 border-t border-brand-border pt-6">
-          Don't have an account? <a onclick="go('signup')" class="text-brand-primary font-medium hover:underline cursor-pointer">Register now</a>
-        </div>
-      </div>
-    </div>`;
+  app.innerHTML = `<div class="form-card"><h2>Login</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="pw" type="password" placeholder="Password">
+    <button onclick="doLogin()">Login</button>
+    <div id="err" class="error"></div>
+    <div class="switch">No account? <a onclick="go('signup')">Sign up</a></div></div>`;
 }
-
 window.doLogin = async function() {
-  const errBox = document.getElementById('err');
-  const errText = document.getElementById('err-text');
-  errBox.classList.add('hidden');
-  
-  const btn = document.querySelector('button');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<span class="loader w-5 h-5"></span>';
-  btn.disabled = true;
-
+  const err = document.getElementById('err'); err.textContent = '';
   try {
-    const d = await api('/login', { 
-        method: 'POST', 
-        body: JSON.stringify({
-            email: document.getElementById('email').value,
-            password: document.getElementById('pw').value 
-        })
-    });
-    setSession(d.token, d.player_id); 
-    go('lobby');
-  } catch (e) { 
-    errText.textContent = e.message; 
-    errBox.classList.remove('hidden');
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
+    const d = await api('/login', { method: 'POST', body: JSON.stringify({
+      email: document.getElementById('email').value,
+      password: document.getElementById('pw').value })});
+    setSession(d.token, d.player_id); go('lobby');
+  } catch (e) { err.textContent = e.message; }
 };
 
-// --- View: Signup ---
 function renderSignup() {
-  app.innerHTML = `
-    <div class="flex-grow flex items-center justify-center p-4">
-      <div class="bg-brand-surface border border-brand-border w-full max-w-md p-8 rounded-2xl shadow-2xl">
-        <div class="text-center mb-6">
-          <h2 class="text-2xl font-bold text-white">Create Account</h2>
-          <p class="text-slate-400 text-sm mt-1">Join today and claim your bonus</p>
-        </div>
-        
-        <div class="bg-gradient-to-r from-brand-success/20 to-brand-primary/20 border border-brand-success/30 rounded-lg p-4 mb-6 flex items-center gap-3">
-          <div class="bg-brand-success/20 p-2 rounded-full text-brand-success">
-            <i class="ph-fill ph-gift text-xl"></i>
-          </div>
-          <div>
-            <div class="text-brand-success font-bold text-sm">Welcome Bonus</div>
-            <div class="text-white text-xs">Get 5,000 SC immediately upon signup</div>
-          </div>
-        </div>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
-            <div class="relative">
-              <i class="ph ph-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-              <input id="email" type="email" placeholder="player@example.com" class="w-full bg-brand-bg border border-brand-border rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-            <div class="relative">
-              <i class="ph ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-              <input id="pw" type="password" placeholder="Minimum 6 characters" class="w-full bg-brand-bg border border-brand-border rounded-lg py-2.5 pl-10 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all" onkeypress="if(event.key === 'Enter') doSignup()">
-            </div>
-          </div>
-          
-          <div id="err" class="hidden bg-brand-danger/10 border border-brand-danger/20 text-brand-danger text-sm rounded-lg p-3 flex items-start gap-2">
-            <i class="ph-fill ph-warning-circle mt-0.5"></i>
-            <span id="err-text"></span>
-          </div>
-          
-          <button onclick="doSignup()" class="w-full bg-brand-primary hover:bg-[#00cce6] text-black font-bold rounded-lg py-3 transition-colors active:scale-[0.98]">
-            Create Account
-          </button>
-        </div>
-        
-        <div class="mt-6 text-center text-sm text-slate-400 border-t border-brand-border pt-6">
-          Already have an account? <a onclick="go('login')" class="text-brand-primary font-medium hover:underline cursor-pointer">Sign in</a>
-        </div>
-      </div>
-    </div>`;
+  app.innerHTML = `<div class="form-card"><h2>Sign up</h2>
+    <div class="bonus">🎁 5,000 SC on signup</div>
+    <input id="email" type="email" placeholder="Email">
+    <input id="pw" type="password" placeholder="Password (min 6)">
+    <button onclick="doSignup()">Create account</button>
+    <div id="err" class="error"></div>
+    <div class="switch">Have an account? <a onclick="go('login')">Login</a></div></div>`;
 }
-
 window.doSignup = async function() {
-  const errBox = document.getElementById('err');
-  const errText = document.getElementById('err-text');
-  errBox.classList.add('hidden');
-  
-  const btn = document.querySelector('button');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<span class="loader w-5 h-5"></span>';
-  btn.disabled = true;
-
+  const err = document.getElementById('err'); err.textContent = '';
   try {
-    await api('/signup', { 
-        method: 'POST', 
-        body: JSON.stringify({
-            email: document.getElementById('email').value,
-            password: document.getElementById('pw').value 
-        })
-    });
+    await api('/signup', { method: 'POST', body: JSON.stringify({
+      email: document.getElementById('email').value,
+      password: document.getElementById('pw').value })});
     go('check-email');
-  } catch (e) { 
-    errText.textContent = e.message; 
-    errBox.classList.remove('hidden');
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
+  } catch (e) { err.textContent = e.message; }
 };
 
-// --- View: Check Email ---
 function renderCheckEmail() {
-  app.innerHTML = `
-    <div class="flex-grow flex items-center justify-center p-4">
-      <div class="bg-brand-surface border border-brand-border w-full max-w-md p-8 rounded-2xl shadow-2xl text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-primary/10 text-brand-primary mb-6">
-          <i class="ph-fill ph-paper-plane-tilt text-3xl"></i>
-        </div>
-        <h2 class="text-2xl font-bold text-white mb-2">Check your email</h2>
-        <p class="text-slate-400 mb-6 leading-relaxed">
-          We sent you a verification link. Open it to activate your account and claim your <strong class="text-brand-success">5,000 SC</strong> bonus.
-        </p>
-        <div class="bg-brand-bg border border-brand-border rounded-lg p-3 text-xs text-slate-500 mb-6 flex items-center gap-2 justify-center">
-          <i class="ph ph-terminal-window text-lg"></i>
-          Dev mode: Link is printed in the RGS console.
-        </div>
-        <button onclick="go('login')" class="text-brand-primary font-medium hover:text-white transition-colors flex items-center justify-center gap-2 w-full">
-          <i class="ph ph-arrow-left"></i> Back to login
-        </button>
-      </div>
-    </div>`;
+  app.innerHTML = `<div class="message"><h2>Check your email</h2>
+    <p>We sent you a verification link. Open it to activate your account and get 5000 SC.</p>
+    <p class="small">Dev mode: link is printed in the RGS server console.</p>
+    <p style="margin-top:1em"><a onclick="go('login')" style="color:#00e5ff;cursor:pointer">Back to login</a></p></div>`;
 }
 
-// --- View: Lobby ---
 async function renderLobby() {
   if (!getToken()) return go('login');
-  
-  app.innerHTML = `
-    <div class="max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-bold text-white flex items-center gap-2"><i class="ph-fill ph-game-controller text-brand-primary"></i> Casino Games</h2>
-      </div>
-      <div id="games-container" class="flex justify-center items-center py-20">
-         <div class="flex flex-col items-center gap-4 text-slate-500">
-           <span class="loader w-8 h-8 border-slate-500 border-b-brand-primary"></span>
-           <p class="text-sm font-medium tracking-widest uppercase">Loading Games...</p>
-         </div>
-      </div>
-    </div>`;
-
-  const container = document.getElementById('games-container');
-  
+  app.innerHTML = '<div class="empty">Loading games...</div>';
   try {
     const games = await api('/games');
-    if (!games || !games.length) { 
-        container.innerHTML = `
-          <div class="flex flex-col items-center gap-4 text-slate-500 py-10">
-            <i class="ph-fill ph-ghost text-4xl opacity-50"></i>
-            <p>No games published yet.</p>
-          </div>`; 
-        return; 
-    }
-    
-    // Grid Setup
-    container.className = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6";
-    container.innerHTML = games.map(g => `
-      <div class="group relative bg-brand-surface rounded-xl overflow-hidden cursor-pointer border border-brand-border hover:border-brand-primary/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,229,255,0.1)]" onclick="go('play/${g.game_id}')">
-        
-        <div class="aspect-[4/3] w-full bg-brand-bg relative overflow-hidden">
-          <img src="${g.thumbnail || ''}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48Y2lyY2xlIGN4PSI4LjUiIGN5PSI4LjUiIHI9IjEuNSI+PC9jaXJjbGU+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSI+PC9wb2x5bGluZT48L3N2Zz4='" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-          
-          <div class="absolute inset-0 bg-gradient-to-t from-brand-surface via-transparent to-transparent opacity-90"></div>
-          
-          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-            <button class="bg-brand-primary text-black px-5 py-2 rounded-full font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
-              <i class="ph-fill ph-play"></i> Play
-            </button>
-          </div>
-        </div>
-        
-        <div class="p-4 relative z-10">
-          <h3 class="font-bold text-slate-100 truncate text-sm sm:text-base">${g.title}</h3>
-          <div class="flex justify-between items-center mt-2">
-            <span class="text-[10px] sm:text-xs text-slate-400 font-medium bg-brand-bg border border-brand-border px-2 py-1 rounded">RTP ${(g.rtp * 100).toFixed(2)}%</span>
-          </div>
-        </div>
-        
-      </div>
-    `).join('');
-    
-  } catch (e) { 
-      container.className = "flex justify-center items-center py-20";
-      container.innerHTML = `
-        <div class="bg-brand-danger/10 border border-brand-danger/20 text-brand-danger p-4 rounded-lg flex items-center gap-3">
-          <i class="ph-fill ph-warning-circle text-xl"></i>
-          <span>Failed to load lobby: ${e.message}</span>
-        </div>`; 
-  }
+    if (!games.length) { app.innerHTML = '<div class="empty">No games published yet.</div>'; return; }
+    app.innerHTML = '<div class="games-grid">' + games.map(g => `<div class="game-card" onclick="go('play/${g.game_id}')">
+      <img src="${g.thumbnail || ''}" onerror="this.style.background='#333'">
+      <h3>${g.title}</h3>
+      <div class="rtp">RTP ${(g.rtp * 100).toFixed(2)}%</div></div>`).join('') + '</div>';
+  } catch (e) { app.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
 }
 
-// --- View: Play Game (Iframe) ---
 async function renderPlay(gameId) {
   if (!getToken()) return go('login');
-  
-  app.innerHTML = `
-    <div class="flex-grow flex flex-col w-full h-[calc(100vh-65px)]">
-      
-      <!-- In-Game Header -->
-      <div class="bg-brand-surface/80 backdrop-blur-sm border-b border-brand-border py-2 px-4 flex items-center justify-between shrink-0">
-        <button onclick="go('lobby')" class="bg-brand-bg border border-brand-border hover:border-brand-primary/50 text-slate-300 hover:text-white px-3 py-1.5 rounded text-sm flex items-center gap-2 transition-all">
-          <i class="ph-bold ph-caret-left"></i> Back to Lobby
-        </button>
-        <div class="flex items-center gap-3 text-xs">
-           <span class="text-slate-500">ID: ${gameId}</span>
-           <span class="flex h-2 w-2 relative">
-             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-success opacity-75"></span>
-             <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-success"></span>
-           </span>
-        </div>
-      </div>
-      
-      <!-- Iframe Container -->
-      <div id="iframe-container" class="w-full flex-grow relative bg-black flex items-center justify-center">
-         <span class="loader w-10 h-10 border-slate-700 border-b-brand-primary absolute z-0"></span>
-      </div>
-    </div>
-  `;
-
-  const container = document.getElementById('iframe-container');
-
   try {
-    const d = await api('/launch', { 
-        method: 'POST', 
-        body: JSON.stringify({ game_id: gameId })
-    });
-    
-    // As per user logic: Launch from this specific URL format
-    const gameUrl = `https://jaafar.ngrok.app/game_${gameId}/`;
-    
-    container.innerHTML += `
-        <iframe src="${gameUrl}" class="w-full h-full border-0 relative z-10 shadow-inner"></iframe>
-    `;
-  } catch (e) { 
-    container.innerHTML = `
-      <div class="bg-brand-danger/10 border border-brand-danger/20 text-brand-danger p-6 rounded-xl flex flex-col items-center gap-4 text-center max-w-sm z-10 relative">
-        <i class="ph-fill ph-x-circle text-4xl"></i>
-        <div>
-          <h3 class="font-bold mb-1">Cannot launch game</h3>
-          <p class="text-sm opacity-80">${e.message}</p>
-        </div>
-        <button onclick="go('lobby')" class="mt-2 bg-brand-danger/20 hover:bg-brand-danger/30 text-white px-4 py-2 rounded transition-colors text-sm font-medium">
-          Return to Lobby
-        </button>
-      </div>`; 
-  }
+    const d = await api('/launch', { method: 'POST', body: JSON.stringify({ game_id: gameId })});
+    const base = API.replace(/\/api$/, '');
+    const gameUrl = base + d.play_url;
+    app.innerHTML = `<div class="iframe-wrap"><iframe src="${gameUrl}"></iframe></div>`;
+  } catch (e) { app.innerHTML = `<div class="empty">Cannot launch: ${e.message}</div>`; }
 }
 </script>
+
 </body>
 </html>
