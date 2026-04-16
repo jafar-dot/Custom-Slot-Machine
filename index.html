@@ -75,6 +75,7 @@ async function render() {
   if (route === 'signup') return renderSignup();
   if (route === 'check-email') return renderCheckEmail();
   if (route === 'lobby') return renderLobby();
+  if (route === 'history') return renderHistory();
   if (route.startsWith('play/')) return renderPlay(route.slice(5));
   go('login');
 }
@@ -83,7 +84,7 @@ async function renderUserBar() {
   if (!getToken()) { userBar.innerHTML = ''; return; }
   try {
     const me = await api('/me');
-    userBar.innerHTML = `<span class="balance">${(me.balance_cents / 100).toFixed(2)} ${me.currency}</span><a onclick="go('lobby')">Lobby</a><a onclick="logout()">Logout</a>`;
+    userBar.innerHTML = `<span class="balance">${(me.balance_cents / 100).toFixed(2)} ${me.currency}</span><a onclick="go('lobby')">Lobby</a><a onclick="go('history')">History</a><a onclick="logout()">Logout</a>`;
   } catch (e) { clearSession(); userBar.innerHTML = ''; }
 }
 
@@ -164,6 +165,43 @@ async function renderPlay(gameId) {
     const gameUrl = 'https://jaafar.ngrok.app' + d.play_url;
     app.innerHTML = `<div class="iframe-wrap"><iframe src="${gameUrl}"></iframe></div>`;
   } catch (e) { app.innerHTML = `<div class="empty">Cannot launch: ${e.message}</div>`; }
+}
+
+async function renderHistory() {
+  if (!getToken()) return go('login');
+  app.innerHTML = '<div class="empty">Loading history...</div>';
+  try {
+    const d = await api('/history?limit=100');
+    if (!d.spins || !d.spins.length) {
+      app.innerHTML = '<div class="empty">No spins yet. <a onclick="go(\'lobby\')" style="color:#00e5ff;cursor:pointer">Play a game</a></div>';
+      return;
+    }
+    const rows = d.spins.map(s => {
+      const net = (s.win_cents - s.bet_cents) / 100;
+      const netColor = net > 0 ? '#00e676' : (net < 0 ? '#ff6b6b' : '#888');
+      const when = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
+      return `<tr>
+        <td style="font-family:monospace;font-size:.75em;color:#888">${s.spin_id.slice(0,8)}…<button onclick="navigator.clipboard.writeText('${s.spin_id}');this.textContent='✓'" style="background:transparent;border:1px solid #333;color:#888;border-radius:3px;margin-left:.4em;cursor:pointer;font-size:.85em;padding:.1em .4em">copy</button></td>
+        <td>${s.game_title || s.game_id}</td>
+        <td>${(s.bet_cents/100).toFixed(2)}</td>
+        <td>${(s.win_cents/100).toFixed(2)}</td>
+        <td style="color:${netColor}">${net > 0 ? '+' : ''}${net.toFixed(2)}</td>
+        <td>${(s.balance_after_cents/100).toFixed(2)}</td>
+        <td style="color:#888;font-size:.85em">${when}</td>
+      </tr>`;
+    }).join('');
+    app.innerHTML = `<div style="max-width:1000px;margin:auto">
+      <h2 style="color:#00e5ff;margin-bottom:1em">Spin History</h2>
+      <p style="color:#888;font-size:.9em;margin-bottom:1em">Your last ${d.spins.length} spins. Click "copy" to copy a spin ID for support tickets.</p>
+      <table style="width:100%;border-collapse:collapse;background:#1a1a1a">
+        <tr style="background:#0a0a0a"><th style="padding:.7em;text-align:left;color:#7fd6ff;font-size:.82em">SPIN ID</th><th style="padding:.7em;text-align:left;color:#7fd6ff;font-size:.82em">GAME</th><th style="padding:.7em;text-align:left;color:#7fd6ff;font-size:.82em">BET</th><th style="padding:.7em;text-align:left;color:#7fd6ff;font-size:.82em">WIN</th><th style="padding:.7em;text-align:left;color:#7fd6ff;font-size:.82em">NET</th><th style="padding:.7em;text-align:left;color:#7fd6ff;font-size:.82em">BALANCE</th><th style="padding:.7em;text-align:left;color:#7fd6ff;font-size:.82em">WHEN</th></tr>
+        ${rows}
+      </table>
+    </div>
+    <style>#app table td{padding:.6em .7em;border-top:1px solid #333;font-size:.9em}</style>`;
+  } catch (e) {
+    app.innerHTML = `<div class="empty">Cannot load history: ${e.message}</div>`;
+  }
 }
 </script>
 
